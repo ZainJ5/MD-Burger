@@ -1,0 +1,81 @@
+import { NextResponse } from "next/server";
+import connectDB from "@/app/lib/mongoose";
+import Order from "@/app/models/Order";
+
+// Get single order details
+export async function GET(request, { params }) {
+  try {
+    await connectDB();
+    const { id } = params;    
+    
+    const order = await Order.findById(id).lean();
+    
+    if (!order) {
+      return NextResponse.json({ message: "Order not found" }, { status: 404 });
+    }
+    
+    return NextResponse.json(order, { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'private, max-age=60' // Cache for 60 seconds
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return NextResponse.json({ message: "Failed to fetch order" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request, { params }) {
+  try {
+    await connectDB();
+    const { id } = params;    
+    const { isCompleted } = await request.json(); 
+    
+    // Use lean() for better performance when getting the updated document
+    const order = await Order.findByIdAndUpdate(
+      id, 
+      { isCompleted }, 
+      { new: true }
+    ).lean();
+    
+    if (!order) {
+      return NextResponse.json({ message: "Order not found" }, { status: 404 });
+    }
+    
+    return NextResponse.json(order, { status: 200 });
+  } catch (error) {
+    console.error("Error updating order:", error);
+    return NextResponse.json({ message: "Failed to update order" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request, { params }) {
+  try {
+    await connectDB();
+    const { id } = params;
+    
+    // For deletion, it's more efficient to just check existence and then delete
+    const exists = await Order.exists({ _id: id });
+    
+    if (!exists) {
+      return NextResponse.json(
+        { message: "Order not found" },
+        { status: 404 }
+      );
+    }
+    
+    await Order.deleteOne({ _id: id });
+    
+    return NextResponse.json(
+      { message: "Order deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    return NextResponse.json(
+      { message: "Failed to delete order" },
+      { status: 500 }
+    );
+  }
+}
