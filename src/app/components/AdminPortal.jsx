@@ -61,7 +61,7 @@ export default function AdminPortal({ onLogout }) {
     fetchFoodItems();
     fetchSiteStatus();
     fetchDeliveryAreas();
-    
+
     setCurrentDateTime(new Date().toLocaleString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -70,7 +70,7 @@ export default function AdminPortal({ onLogout }) {
       hour: '2-digit',
       minute: '2-digit'
     }));
-    
+
     const timer = setInterval(() => {
       setCurrentDateTime(new Date().toLocaleString('en-US', {
         weekday: 'long',
@@ -81,9 +81,9 @@ export default function AdminPortal({ onLogout }) {
         minute: '2-digit'
       }));
     }, 60000);
-    
+
     document.body.style.overflow = "hidden";
-    
+
     return () => {
       document.body.style.overflow = "auto";
       clearInterval(timer);
@@ -214,9 +214,9 @@ export default function AdminPortal({ onLogout }) {
     try {
       const res = await fetch("/api/categories", {
         method: "POST",
-        body: formData, 
+        body: formData,
       });
-      
+
       if (res.ok) {
         const createdCategory = await res.json();
         setCategories((prev) => [...prev, createdCategory]);
@@ -494,7 +494,7 @@ export default function AdminPortal({ onLogout }) {
       <div className="bg-white border-b border-gray-200 shadow-sm z-20">
         <div className="flex justify-between items-center px-4 h-16">
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
               className="md:hidden p-2 rounded-md hover:bg-gray-100"
             >
@@ -503,17 +503,18 @@ export default function AdminPortal({ onLogout }) {
               </svg>
             </button>
             <div className="flex items-center">
-              <Image 
-                src="/logo.png" 
-                alt="Restaurant Logo" 
-                width={40} 
-                height={40} 
+              <img
+                src="/logo.png"
+                alt="Restaurant Logo"
+                width="40"
+                height="40"
                 className="object-contain"
               />
+
               <h1 className="ml-2 text-xl font-bold text-red-700 hidden sm:block">Restaurant Management</h1>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center text-sm text-gray-500 font-medium bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -521,19 +522,18 @@ export default function AdminPortal({ onLogout }) {
               </svg>
               {currentDateTime}
             </div>
-            
+
             <button
               onClick={handleToggleSiteStatus}
-              className={`hidden md:flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm ${
-                siteStatus 
-                  ? "bg-green-100 text-green-800 border border-green-200" 
+              className={`hidden md:flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm ${siteStatus
+                  ? "bg-green-100 text-green-800 border border-green-200"
                   : "bg-red-100 text-red-800 border border-red-200"
-              }`}
+                }`}
             >
               <span className={`w-2 h-2 rounded-full mr-2 ${siteStatus ? 'bg-green-500' : 'bg-red-500'}`}></span>
               {siteStatus ? "Site Online" : "Site Offline"}
             </button>
-            
+
             <button
               onClick={() => setIsSettingsOpen(true)}
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -544,7 +544,7 @@ export default function AdminPortal({ onLogout }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
-            
+
             <button
               onClick={confirmLogout}
               className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-sm"
@@ -564,11 +564,10 @@ export default function AdminPortal({ onLogout }) {
         <aside className="hidden md:flex flex-col w-64 bg-gradient-to-r from-[#ba0000] to-[#930000] text-white shadow-xl z-10">
           <div className="flex-1 overflow-y-auto py-4 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
             <div className="px-4 py-2">
-              <div className={`mb-6 px-3 py-2.5 rounded-lg ${
-                siteStatus 
-                  ? "bg-green-500 bg-opacity-20 border border-green-600 border-opacity-30" 
+              <div className={`mb-6 px-3 py-2.5 rounded-lg ${siteStatus
+                  ? "bg-green-500 bg-opacity-20 border border-green-600 border-opacity-30"
                   : "bg-red-800 bg-opacity-30 border border-red-700 border-opacity-30"
-              }`}>
+                }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <span className={`w-3 h-3 rounded-full ${siteStatus ? "bg-green-400" : "bg-red-400"}`}></span>
@@ -576,29 +575,27 @@ export default function AdminPortal({ onLogout }) {
                       {siteStatus ? "System Online" : "System Offline"}
                     </span>
                   </div>
-                  <button 
+                  <button
                     onClick={handleToggleSiteStatus}
-                    className={`text-xs px-2 py-1 rounded ${
-                      siteStatus 
-                        ? "bg-green-700 text-green-100 hover:bg-green-600" 
+                    className={`text-xs px-2 py-1 rounded ${siteStatus
+                        ? "bg-green-700 text-green-100 hover:bg-green-600"
                         : "bg-red-700 text-red-100 hover:bg-red-600"
-                    }`}
+                      }`}
                   >
                     Toggle
                   </button>
                 </div>
               </div>
-              
+
               <div className="space-y-1">
                 {navigationItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setSelectedTab(item.id)}
-                    className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      selectedTab === item.id
+                    className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${selectedTab === item.id
                         ? "bg-white text-red-700 shadow-md"
                         : "text-white hover:bg-red-700 hover:bg-opacity-70"
-                    }`}
+                      }`}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -615,7 +612,7 @@ export default function AdminPortal({ onLogout }) {
               </div>
             </div>
           </div>
-          
+
           <div className="p-4 border-t border-red-700 border-opacity-30">
             <button
               onClick={() => setIsSettingsOpen(true)}
@@ -639,10 +636,10 @@ export default function AdminPortal({ onLogout }) {
         {mobileSidebarOpen && (
           <div className="fixed inset-0 z-40 md:hidden">
             <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setMobileSidebarOpen(false)}></div>
-            
+
             <div className="relative flex-1 flex flex-col max-w-xs w-full bg-red-600 overflow-hidden scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
               <div className="absolute top-0 right-0 -mr-12 pt-2">
-                <button 
+                <button
                   onClick={() => setMobileSidebarOpen(false)}
                   className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                 >
@@ -652,24 +649,24 @@ export default function AdminPortal({ onLogout }) {
                   </svg>
                 </button>
               </div>
-              
+
               <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
                 <div className="flex-shrink-0 flex items-center px-4">
-                  <Image 
-                    src="/logo.png" 
-                    alt="Restaurant Logo" 
-                    width={40} 
-                    height={40} 
+                  <img
+                    src="/logo.png"
+                    alt="Restaurant Logo"
+                    width="40"
+                    height="40"
                     className="object-contain"
                   />
+
                   <h2 className="ml-2 text-xl font-bold text-white">Restaurant</h2>
                 </div>
                 <div className="mt-5 px-4">
-                  <div className={`mb-4 p-3 rounded-lg ${
-                    siteStatus 
-                      ? "bg-green-500 bg-opacity-20 border border-green-600 border-opacity-30" 
+                  <div className={`mb-4 p-3 rounded-lg ${siteStatus
+                      ? "bg-green-500 bg-opacity-20 border border-green-600 border-opacity-30"
                       : "bg-red-800 bg-opacity-30 border border-red-700 border-opacity-30"
-                  }`}>
+                    }`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <span className={`w-3 h-3 rounded-full ${siteStatus ? "bg-green-400" : "bg-red-400"}`}></span>
@@ -677,19 +674,18 @@ export default function AdminPortal({ onLogout }) {
                           {siteStatus ? "System Online" : "System Offline"}
                         </span>
                       </div>
-                      <button 
+                      <button
                         onClick={handleToggleSiteStatus}
-                        className={`text-xs px-2 py-1 rounded ${
-                          siteStatus 
-                            ? "bg-green-700 text-green-100" 
+                        className={`text-xs px-2 py-1 rounded ${siteStatus
+                            ? "bg-green-700 text-green-100"
                             : "bg-red-700 text-red-100"
-                        }`}
+                          }`}
                       >
                         Toggle
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="mt-2 space-y-1">
                     {navigationItems.map((item) => (
                       <button
@@ -698,11 +694,10 @@ export default function AdminPortal({ onLogout }) {
                           setSelectedTab(item.id);
                           setMobileSidebarOpen(false);
                         }}
-                        className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          selectedTab === item.id
+                        className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${selectedTab === item.id
                             ? "bg-white text-red-700 shadow-md"
                             : "text-white hover:bg-red-700 hover:bg-opacity-70"
-                        }`}
+                          }`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -719,7 +714,7 @@ export default function AdminPortal({ onLogout }) {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex-shrink-0 flex border-t border-red-700 border-opacity-30 p-4">
                 <button
                   onClick={confirmLogout}
@@ -755,7 +750,7 @@ export default function AdminPortal({ onLogout }) {
                 Manage your restaurant operations efficiently and effectively.
               </p>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md border border-gray-100">
               <div className="p-6">
                 {renderContent()}
@@ -765,13 +760,13 @@ export default function AdminPortal({ onLogout }) {
         </main>
       </div>
 
-      <SettingsPopup 
+      <SettingsPopup
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
-      
+
       {showConfirmation && (
-        <ConfirmationDialog 
+        <ConfirmationDialog
           title="Change Site Status"
           message={`Are you sure you want to turn the site ${siteStatus ? 'OFF' : 'ON'}?`}
           onConfirm={toggleSiteStatus}
@@ -780,7 +775,7 @@ export default function AdminPortal({ onLogout }) {
       )}
 
       {showLogoutConfirmation && (
-        <ConfirmationDialog 
+        <ConfirmationDialog
           title="Confirm Logout"
           message="Are you sure you want to logout from the admin panel?"
           onConfirm={handleLogout}

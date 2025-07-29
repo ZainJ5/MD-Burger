@@ -28,14 +28,14 @@ export default function Login() {
     <div className="min-h-screen flex items-center text-black justify-center bg-gradient-to-br from-red-100 via-white to-red-100 p-4">
       <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-md transform transition-all hover:shadow-xl">
         <div className="flex justify-center mb-6">
-          <Image
+          <img
             src="/logo.png"
             alt="Restaurant Logo"
-            width={120}
-            height={120}
+            width="120"
+            height="120"
             className="object-contain"
-            priority
           />
+
         </div>
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">
           Admin Portal

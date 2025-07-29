@@ -57,7 +57,7 @@ export default function Footer() {
     <footer className="bg-white border-t">
       <div className="max-w-7xl mx-auto px-4 pb-12 sm:px-6 lg:px-8 relative">
         <Link href="/">
-          <div className="relative rounded-full border-4 border-yellow-400 w-32 h-32  bg-white absolute left-1/2 top-[0px] transform -translate-x-1/2 -translate-y-1/2 z-10 overflow-hidden">
+          <div className="relative rounded-full border-4 border-yellow-400 w-32 h-32  bg-white left-1/2 top-[0px] transform -translate-x-1/2 -translate-y-1/2 z-10 overflow-hidden">
             <img 
               src={footerData.restaurant.logo || "/logo.png"} 
               alt={footerData.restaurant.name} 

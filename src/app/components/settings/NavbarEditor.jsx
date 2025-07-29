@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Image from "next/image";
 
 export default function NavbarEditor() {
   const [navbarData, setNavbarData] = useState({
@@ -24,7 +23,7 @@ export default function NavbarEditor() {
       { platform: "tiktok", icon: "/instagram.png", url: "https://www.tiktok.com/tipuburger" }
     ]
   });
-  
+
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [socialIconFiles, setSocialIconFiles] = useState({});
@@ -41,28 +40,25 @@ export default function NavbarEditor() {
         const response = await fetch('/api/navbar');
         if (response.ok) {
           const data = await response.json();
-          
-          // Clean the data to ensure each item has either url or menuFile but not both
+
           if (data.socialLinks) {
             data.socialLinks = data.socialLinks.map(link => {
               const cleanedLink = { ...link };
-              
+
               if (cleanedLink.isMenu) {
-                // If it's a menu item, ensure it has menuFile and no url
                 delete cleanedLink.url;
                 if (!cleanedLink.menuFile) cleanedLink.menuFile = "";
               } else {
-                // If it's a social link, ensure it has url and no menuFile
                 delete cleanedLink.menuFile;
                 if (!cleanedLink.url) cleanedLink.url = "";
               }
-              
+
               return cleanedLink;
             });
           }
-          
+
           setNavbarData(data);
-          
+
           if (data.restaurant?.logo) {
             setLogoPreview(data.restaurant.logo);
           }
@@ -81,7 +77,7 @@ export default function NavbarEditor() {
         setIsLoadingData(false);
       }
     };
-    
+
     fetchNavbarData();
   }, []);
 
@@ -125,7 +121,7 @@ export default function NavbarEditor() {
         ...prev,
         [index]: file
       }));
-      
+
       const reader = new FileReader();
       reader.onload = () => {
         setSocialIconPreviews(prev => ({
@@ -144,18 +140,16 @@ export default function NavbarEditor() {
         ...prev,
         [index]: file
       }));
-      
+
       setMenuFilePreviews(prev => ({
         ...prev,
         [index]: file.name
       }));
-      
-      // When a menu file is added, convert the item to menu type
+
       setNavbarData(prev => {
         const updatedLinks = [...prev.socialLinks];
-        // Make it a menu item and remove url
-        updatedLinks[index] = { 
-          ...updatedLinks[index], 
+        updatedLinks[index] = {
+          ...updatedLinks[index],
           isMenu: true,
           url: undefined
         };
@@ -171,7 +165,7 @@ export default function NavbarEditor() {
     setNavbarData(prev => ({
       ...prev,
       socialLinks: [
-        ...prev.socialLinks, 
+        ...prev.socialLinks,
         { platform: "", icon: "", isMenu: false, url: "" }
       ]
     }));
@@ -186,24 +180,22 @@ export default function NavbarEditor() {
         socialLinks: updatedLinks
       };
     });
-    
-    // Remove file and preview if exists
+
     if (socialIconFiles[index]) {
       const updatedFiles = { ...socialIconFiles };
       delete updatedFiles[index];
       setSocialIconFiles(updatedFiles);
-      
+
       const updatedPreviews = { ...socialIconPreviews };
       delete updatedPreviews[index];
       setSocialIconPreviews(updatedPreviews);
     }
-    
-    // Remove menu file if exists
+
     if (menuFiles[index]) {
       const updatedFiles = { ...menuFiles };
       delete updatedFiles[index];
       setMenuFiles(updatedFiles);
-      
+
       const updatedPreviews = { ...menuFilePreviews };
       delete updatedPreviews[index];
       setMenuFilePreviews(updatedPreviews);
@@ -214,23 +206,19 @@ export default function NavbarEditor() {
     setNavbarData(prev => {
       const updatedLinks = [...prev.socialLinks];
       const currentLink = { ...updatedLinks[index] };
-      
-      // Toggle isMenu flag
+
       currentLink.isMenu = !currentLink.isMenu;
-      
-      // Clear the incorrect field based on the new type
+
       if (currentLink.isMenu) {
-        // Converting to menu item - remove url, ensure menuFile exists
         currentLink.url = undefined;
         if (!currentLink.menuFile) currentLink.menuFile = "";
       } else {
-        // Converting to social link - remove menuFile, ensure url exists
         currentLink.menuFile = undefined;
         if (!currentLink.url) currentLink.url = "";
       }
-      
+
       updatedLinks[index] = currentLink;
-      
+
       return {
         ...prev,
         socialLinks: updatedLinks
@@ -243,78 +231,67 @@ export default function NavbarEditor() {
     setIsLoading(true);
 
     try {
-      // Clean data before submitting to ensure each item only has the correct fields
       const cleanedData = { ...navbarData };
       cleanedData.socialLinks = cleanedData.socialLinks.map(link => {
         const cleanedLink = { ...link };
-        
+
         if (cleanedLink.isMenu) {
-          // Remove url field for menu items
           delete cleanedLink.url;
         } else {
-          // Remove menuFile field for social links
           delete cleanedLink.menuFile;
         }
-        
+
         return cleanedLink;
       });
-      
+
       const formData = new FormData();
-      
-      // Append navbar data as JSON
+
       formData.append('navbarData', JSON.stringify(cleanedData));
-      
-      // Append logo if changed
+
       if (logoFile) {
         formData.append('logo', logoFile);
       }
-      
-      // Append social icons if changed
+
       Object.entries(socialIconFiles).forEach(([index, file]) => {
         formData.append('socialIcons', file);
         formData.append('socialIconIndexes', index);
       });
-      
-      // Append menu files if changed
+
       Object.entries(menuFiles).forEach(([index, file]) => {
         formData.append('menuFiles', file);
         formData.append('menuIndexes', index);
       });
-      
-      // Make API request
+
       const response = await fetch('/api/navbar', {
         method: 'POST',
         body: formData,
       });
-      
+
       if (response.ok) {
-        // Update with fresh data
         const updatedData = await response.json();
-        
-        // Clean the received data
+
         if (updatedData.socialLinks) {
           updatedData.socialLinks = updatedData.socialLinks.map(link => {
             const cleanedLink = { ...link };
-            
+
             if (cleanedLink.isMenu) {
               delete cleanedLink.url;
             } else {
               delete cleanedLink.menuFile;
             }
-            
+
             return cleanedLink;
           });
         }
-        
+
         setNavbarData(updatedData);
-        
-        // Reset file states
+
         setLogoFile(null);
         setSocialIconFiles({});
         setSocialIconPreviews({});
         setMenuFiles({});
         setMenuFilePreviews({});
-        
+
         toast.success("Navbar information updated successfully!", {
           position: "top-right",
           autoClose: 3000,
@@ -354,7 +331,6 @@ export default function NavbarEditor() {
 
   return (
     <div className="p-6 space-y-8">
-      {/* Add ToastContainer for react-toastify */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -366,40 +342,39 @@ export default function NavbarEditor() {
         draggable
         pauseOnHover
         theme="light"
-        toastStyle={{ 
-          backgroundColor: "#fff", 
+        toastStyle={{
+          backgroundColor: "#fff",
           boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
           borderRadius: "8px"
         }}
         progressStyle={{ backgroundColor: "#ef4444" }}
       />
-      
+
       <div className="border-b border-gray-200 pb-4">
         <h2 className="text-xl font-bold text-gray-800">Navbar Editor</h2>
         <p className="text-gray-500 mt-1">Customize the top navigation bar of your website</p>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Restaurant Information */}
         <div className="space-y-6">
           <h3 className="text-lg font-medium text-gray-700">Restaurant Information</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Restaurant Name</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={navbarData.restaurant.name}
                 onChange={(e) => handleInputChange('restaurant', 'name', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Opening Hours</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={navbarData.restaurant.openingHours}
                 onChange={(e) => handleInputChange('restaurant', 'openingHours', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -407,22 +382,22 @@ export default function NavbarEditor() {
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Restaurant Logo</label>
             <div className="flex items-center space-x-4">
               {(logoPreview || navbarData.restaurant.logo) && (
                 <div className="relative h-20 w-20 border rounded-full overflow-hidden">
-                  <Image 
-                    src={logoPreview || navbarData.restaurant.logo} 
-                    alt="Restaurant logo" 
-                    fill
-                    className="object-cover"
+                  <img
+                    src={logoPreview || navbarData.restaurant.logo}
+                    alt="Restaurant logo"
+                    className="w-full h-full object-cover"
                   />
+
                 </div>
               )}
-              <input 
-                type="file" 
+              <input
+                type="file"
                 onChange={handleLogoChange}
                 accept="image/png,image/jpeg,image/gif"
                 className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
@@ -430,27 +405,26 @@ export default function NavbarEditor() {
             </div>
           </div>
         </div>
-        
-        {/* Delivery Information */}
+
         <div className="space-y-6">
           <h3 className="text-lg font-medium text-gray-700">Delivery Information</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Time</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={navbarData.delivery.time}
                 onChange={(e) => handleInputChange('delivery', 'time', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Order</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={navbarData.delivery.minimumOrder}
                 onChange={(e) => handleInputChange('delivery', 'minimumOrder', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
@@ -459,8 +433,7 @@ export default function NavbarEditor() {
             </div>
           </div>
         </div>
-        
-        {/* Social Links */}
+
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-700">Social Links & Menu</h3>
@@ -472,7 +445,7 @@ export default function NavbarEditor() {
               Add Link
             </button>
           </div>
-          
+
           {navbarData.socialLinks.map((link, index) => (
             <div key={index} className="p-4 border border-gray-200 rounded-md space-y-4">
               <div className="flex justify-between items-center">
@@ -483,11 +456,10 @@ export default function NavbarEditor() {
                   <button
                     type="button"
                     onClick={() => toggleMenuType(index)}
-                    className={`px-2 py-1 text-xs font-medium rounded ${
-                      link.isMenu 
-                        ? "bg-green-100 text-green-800" 
+                    className={`px-2 py-1 text-xs font-medium rounded ${link.isMenu
+                        ? "bg-green-100 text-green-800"
                         : "bg-blue-100 text-blue-800"
-                    }`}
+                      }`}
                   >
                     {link.isMenu ? "Menu Item" : "Social Link"}
                   </button>
@@ -500,12 +472,12 @@ export default function NavbarEditor() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Platform Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={link.platform || ""}
                     onChange={(e) => handleSocialLinkChange(index, 'platform', e.target.value)}
                     placeholder="e.g. facebook, whatsapp, menu"
@@ -513,7 +485,7 @@ export default function NavbarEditor() {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {link.isMenu ? "Menu PDF" : "URL"}
@@ -530,8 +502,8 @@ export default function NavbarEditor() {
                       </div>
                     </div>
                   ) : (
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={link.url || ""}
                       onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
                       placeholder="https://..."
@@ -541,14 +513,13 @@ export default function NavbarEditor() {
                   )}
                 </div>
               </div>
-              
-              {/* Show the current menu file if it exists */}
+
               {link.isMenu && link.menuFile && (
                 <div className="flex items-center text-sm text-gray-600 mt-1 ml-2">
                   <span>Current file: </span>
-                  <a 
-                    href={link.menuFile} 
-                    target="_blank" 
+                  <a
+                    href={link.menuFile}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="ml-1 text-blue-600 hover:underline truncate max-w-xs"
                   >
@@ -556,22 +527,22 @@ export default function NavbarEditor() {
                   </a>
                 </div>
               )}
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Icon Image</label>
                 <div className="flex items-center space-x-2">
                   {(socialIconPreviews[index] || link.icon) && (
                     <div className="relative h-8 w-8 border rounded overflow-hidden">
-                      <Image 
-                        src={socialIconPreviews[index] || link.icon} 
-                        alt={`${link.platform} icon`} 
-                        fill
-                        className="object-contain"
+                      <img
+                        src={socialIconPreviews[index] || link.icon}
+                        alt={`${link.platform} icon`}
+                        className="w-full h-full object-contain"
                       />
+
                     </div>
                   )}
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     onChange={(e) => handleSocialIconChange(e, index)}
                     accept="image/png,image/jpeg,image/gif,image/webp"
                     className="flex-1 text-sm file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
@@ -580,21 +551,20 @@ export default function NavbarEditor() {
               </div>
             </div>
           ))}
-          
+
           {navbarData.socialLinks.length === 0 && (
             <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
               <p className="text-gray-500">No social links or menu items added yet.</p>
             </div>
           )}
         </div>
-        
+
         <div className="pt-5 border-t border-gray-200">
           <button
             type="submit"
             disabled={isLoading}
-            className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
-              isLoading ? 'opacity-75 cursor-not-allowed' : ''
-            }`}
+            className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${isLoading ? 'opacity-75 cursor-not-allowed' : ''
+              }`}
           >
             {isLoading ? 'Saving...' : 'Save Changes'}
           </button>

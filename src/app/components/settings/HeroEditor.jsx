@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Image from "next/image";
 
 export default function HeroEditor() {
   const [heroData, setHeroData] = useState({
@@ -22,7 +21,6 @@ export default function HeroEditor() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
 
-  // Fetch current hero data on component mount
   useEffect(() => {
     const fetchHeroData = async () => {
       setIsLoadingData(true);
@@ -32,7 +30,6 @@ export default function HeroEditor() {
           const data = await response.json();
           setHeroData(data);
           
-          // Set image previews from existing images
           if (data.images && data.images.length > 0) {
             setImagePreviews(data.images);
           }
@@ -60,7 +57,6 @@ export default function HeroEditor() {
     if (files.length > 0) {
       setNewImageFiles(prev => [...prev, ...files]);
       
-      // Generate previews for new files
       const newPreviews = files.map(file => {
         return new Promise((resolve) => {
           const reader = new FileReader();
@@ -77,7 +73,6 @@ export default function HeroEditor() {
 
   const removeImage = async (index, isExisting = false) => {
     if (isExisting) {
-      // This is an existing image from the database
       const imagePath = heroData.images[index];
       setIsDeletingImage(true);
       
@@ -91,7 +86,6 @@ export default function HeroEditor() {
         });
 
         if (response.ok) {
-          // Update state
           setHeroData(prev => {
             const updatedImages = [...prev.images];
             updatedImages.splice(index, 1);
@@ -101,7 +95,6 @@ export default function HeroEditor() {
             };
           });
           
-          // Update previews
           setImagePreviews(prev => {
             const updated = [...prev];
             updated.splice(index, 1);
@@ -133,7 +126,6 @@ export default function HeroEditor() {
         setIsDeletingImage(false);
       }
     } else {
-      // This is a new image being uploaded
       setNewImageFiles(prev => {
         const updated = [...prev];
         updated.splice(index - heroData.images.length, 1);
@@ -186,15 +178,12 @@ export default function HeroEditor() {
     try {
       const formData = new FormData();
       
-      // Append hero data as JSON
       formData.append('heroData', JSON.stringify(heroData));
       
-      // Append new images if any
       newImageFiles.forEach(file => {
         formData.append('images', file);
       });
       
-      // Make API request
       const response = await fetch('/api/hero', {
         method: 'POST',
         body: formData,
@@ -203,11 +192,9 @@ export default function HeroEditor() {
       if (response.ok) {
         const updatedData = await response.json();
         
-        // Update state with response data
         setHeroData(updatedData);
         setImagePreviews(updatedData.images);
         
-        // Reset file states
         setNewImageFiles([]);
         
         toast.success("Hero section updated successfully!", {
@@ -249,7 +236,6 @@ export default function HeroEditor() {
 
   return (
     <div className="p-6 space-y-8">
-      {/* Add ToastContainer for react-toastify */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -275,7 +261,6 @@ export default function HeroEditor() {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Banner Messages */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-700">Banner Messages</h3>
           <p className="text-sm text-gray-500">These messages will rotate at the top of your page</p>
@@ -325,7 +310,6 @@ export default function HeroEditor() {
           </div>
         </div>
         
-        {/* Hero Images */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-700">Hero Slider Images</h3>
           <p className="text-sm text-gray-500">Upload images for the main slider (recommended aspect ratio: 3:1)</p>
@@ -344,12 +328,11 @@ export default function HeroEditor() {
             {imagePreviews.map((image, index) => (
               <div key={index} className="relative rounded-md overflow-hidden group">
                 <div className="relative aspect-[3/1] w-full bg-gray-100">
-                  <Image 
-                    src={image} 
-                    alt={`Hero image ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
+                  <img 
+  src={image} 
+  alt={`Hero image ${index + 1}`}
+  className="w-full h-full object-cover"
+/>
                 </div>
                 <button
                   type="button"
@@ -372,7 +355,6 @@ export default function HeroEditor() {
           )}
         </div>
         
-        {/* Settings */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-700">Animation Settings</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
