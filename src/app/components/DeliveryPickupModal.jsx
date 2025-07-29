@@ -10,15 +10,7 @@ export default function DeliveryPickupModal() {
   const { orderType, setOrderType } = useOrderTypeStore();
   const { branch, setBranch } = useBranchStore();
 
-  const [branches, setBranches] = useState([
-    {
-      _id: "67b904f9397c3ee1c79e08d1",
-      name: "Clifton",
-      createdAt: "2025-02-21T22:58:01.942+00:00",
-      updatedAt: "2025-02-21T22:58:01.942+00:00",
-      __v: 0,
-    },
-  ]);
+  const [branches, setBranches] = useState([]);
 
   const [open, setOpen] = useState(true);
 
@@ -43,8 +35,6 @@ export default function DeliveryPickupModal() {
     }
   }, [branch, branches, setBranch]);
 
-  // Commented out API call for branches
-  /*
   useEffect(() => {
     async function fetchBranches() {
       try {
@@ -57,7 +47,6 @@ export default function DeliveryPickupModal() {
     }
     fetchBranches();
   }, []);
-  */
 
   useEffect(() => {
     if (branch && orderType) {

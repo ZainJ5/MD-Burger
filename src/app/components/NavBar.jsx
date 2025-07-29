@@ -7,6 +7,19 @@ import { useBranchStore } from "@/store/branchStore";
 export default function Navbar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fetchedBranches, setFetchedBranches] = useState([]);
+  const [navbarData, setNavbarData] = useState({
+    restaurant: {
+      name: "Tipu Burger & Broast",
+      openingHours: "11:30 am to 3:30 am",
+      logo: "/logo.png"
+    },
+    delivery: {
+      time: "30-45 mins",
+      minimumOrder: "Rs. 500 Only"
+    },
+    socialLinks: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   const { branch, setBranch } = useBranchStore();
 
@@ -23,18 +36,44 @@ export default function Navbar() {
     getBranches();
   }, []);
 
+  useEffect(() => {
+    async function getNavbarData() {
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/navbar");
+        if (res.ok) {
+          const data = await res.json();
+          setNavbarData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching navbar data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    getNavbarData();
+  }, []);
+
   const handleLocationChange = (selectedBranch) => {
     setBranch(selectedBranch);
     setIsModalOpen(false);
   };
 
-  const socialItems = [
-    { src: "/download.webp", href: "/tipu-menu-update-feb-25.pdf" },
-    { src: "/whatsapp-logo.webp", href: "https://wa.me/923332245706" },
-    { src: "/phone.webp", href: "tel:+92111822111" },
-    { src: "/facebook.webp", href: "https://www.facebook.com/tipuburgerbroast" },
-    { src: "/instagram.png", href: "https://www.tiktok.com/tipuburger", rounded: "rounded" },
-  ];
+  // Transform social links to format expected by the UI
+  const socialItems = isLoading || !navbarData.socialLinks || navbarData.socialLinks.length === 0
+    ? []  // Empty array if loading or no data
+    : navbarData.socialLinks
+        .filter(link => {
+          // Filter out invalid links (missing href)
+          if (link.isMenu) return !!link.menuFile;
+          return !!link.url;
+        })
+        .map(link => ({
+          src: link.icon || "/download.webp",
+          href: link.isMenu ? link.menuFile : link.url,
+          isMenu: link.isMenu,
+          platform: link.platform
+        }));
 
   return (
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-16">
@@ -42,7 +81,7 @@ export default function Navbar() {
         <Link href="/">
           <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 overflow-hidden -mt-8 sm:-mt-10 md:-mt-14 rounded-full">
             <img
-              src="/logo.png" 
+              src={navbarData.restaurant.logo || "/logo.png"} 
               alt="Logo" 
               className="w-full h-full object-cover" 
             />
@@ -54,13 +93,13 @@ export default function Navbar() {
         <div className="flex flex-col sm:flex-row sm:flex-wrap justify-between items-center gap-4 sm:gap-6">
           <div className="flex flex-col text-center sm:text-left">
             <h1 className="text-xl sm:text-2xl pt-4 md:text-3xl font-bold mb-1 sm:mb-2">
-              Tipu Burger & Broast
+              {navbarData.restaurant.name}
             </h1>
             <div className="flex flex-col gap-1.5">
               <div className="text-red-600 text-xs sm:text-sm md:text-base">
                 <span>Open: </span>
                 <span className="font-normal text-black">
-                  11:30 am to 3:30 am
+                  {navbarData.restaurant.openingHours}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1 text-red-600 text-xs sm:text-sm md:text-base">
@@ -70,7 +109,10 @@ export default function Navbar() {
                     {branch?.name || "Select Location"}
                   </span>
                 </div>
-                <span className="underline text-[11px] sm:text-xs cursor-not-allowed opacity-50">
+                <span 
+                  className="underline text-[11px] sm:text-xs cursor-pointer"
+                  onClick={() => setIsModalOpen(true)}
+                >
                   {branch ? "Change Location" : "Choose Location"}
                 </span>
               </div>
@@ -82,7 +124,7 @@ export default function Navbar() {
               <div className="grid grid-cols-2 sm:flex sm:flex-row items-center justify-between gap-4">
                 <div className="flex flex-col items-center">
                   <span className="text-black font-semibold text-sm sm:text-base">
-                    30-45 mins
+                    {navbarData.delivery.time}
                   </span>
                   <span className="text-gray-600 text-[11px] sm:text-xs">
                     Delivery Time
@@ -91,7 +133,7 @@ export default function Navbar() {
                 <div className="hidden sm:block w-px h-8 bg-gray-300"></div>
                 <div className="flex flex-col items-center">
                   <span className="text-black font-semibold text-sm sm:text-base">
-                    Rs. 500 Only
+                    {navbarData.delivery.minimumOrder}
                   </span>
                   <span className="text-gray-600 text-[11px] sm:text-xs">
                     Minimum Order
@@ -103,33 +145,35 @@ export default function Navbar() {
 
           <div className="flex flex-wrap justify-center sm:justify-start gap-2">
             {socialItems.map((item, index) => {
-              if (item.src === "/download.webp") {
+              if (item.isMenu) {
                 return (
                   <a
                     key={index}
                     href={item.href}
-                    download
-                    className={`${item.bg} rounded-[9px] relative hover:opacity-90 transition-opacity w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center`}
+                    download={`${item.platform || 'menu'}.pdf`}
+                    className="rounded-[9px] relative hover:opacity-90 transition-opacity w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center"
                   >
                     <img
                       src={item.src}
-                      alt="Download PDF"
+                      alt="Download Menu"
                       className="w-full h-full object-contain rounded-[7px]"
                     />
                   </a>
                 );
               }
+              
+              // Ensure we have a valid href for Link component
               return (
                 <Link
                   key={index}
-                  href={item.href}
+                  href={item.href || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${item.bg} rounded relative hover:opacity-90 transition-opacity w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center`}
+                  className="rounded relative hover:opacity-90 transition-opacity w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center"
                 >
                   <img
                     src={item.src}
-                    alt="Social icon"
+                    alt={`${item.platform} icon`}
                     className="w-full h-full object-contain"
                   />
                 </Link>

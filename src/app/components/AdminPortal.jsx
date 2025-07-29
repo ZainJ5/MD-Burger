@@ -12,6 +12,7 @@ import CategoryList from "./CategoryList";
 import SubcategoryList from "./SubcategoryList";
 import PromoCodesManager from "./PromoCodesManager";
 import Statistics from "./Statistics";
+import SettingsPopup from "./SettingsPupup";
 
 const ConfirmationDialog = ({ message, onConfirm, onCancel }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -47,6 +48,7 @@ export default function AdminPortal() {
   const [newAreaFee, setNewAreaFee] = useState("");
   const [editingArea, setEditingArea] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     fetchBranches();
@@ -167,13 +169,13 @@ export default function AdminPortal() {
     }
   };
 
-  const addCategory = async (newCategory) => {
+  const addCategory = async (formData) => {
     try {
       const res = await fetch("/api/categories", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCategory),
+        body: formData, 
       });
+      
       if (res.ok) {
         const createdCategory = await res.json();
         setCategories((prev) => [...prev, createdCategory]);
@@ -185,12 +187,11 @@ export default function AdminPortal() {
     }
   };
 
-  const addSubcategory = async (newSubcategory) => {
+  const addSubcategory = async (formData) => {
     try {
       const res = await fetch("/api/subcategories", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newSubcategory),
+        body: formData,
       });
       if (res.ok) {
         const createdSubcategory = await res.json();
@@ -435,42 +436,45 @@ export default function AdminPortal() {
     <div className="min-h-screen text-black bg-gradient-to-br from-gray-50 to-gray-200 p-4">
       <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden flex flex-col md:flex-row h-[92vh]">
         <div 
-          className="hidden md:block w-full md:w-1/4 bg-gradient-to-br from-[#ba0000] to-[#930000] text-white p-6" 
+          className="hidden md:flex md:flex-col md:w-1/4 bg-gradient-to-br from-[#ba0000] to-[#930000] text-white p-6" 
           style={{ 
-            overflowY: 'auto',
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none', 
           }}
         >
-          <div className="flex justify-center mb-8">
-            <Image 
-              src="/logo.png" 
-              alt="Tipu Restaurant Logo" 
-              width={120} 
-              height={120} 
-              className="object-contain drop-shadow-md"
-            />
+          <div className="flex-shrink-0">
+            <div className="flex justify-center mb-8">
+              <Image 
+                src="/logo.png" 
+                alt="Tipu Restaurant Logo" 
+                width={120} 
+                height={120} 
+                className="object-contain drop-shadow-md"
+              />
+            </div>
+            <h2 className="text-xl font-semibold mb-6 text-center text-white">Admin Dashboard</h2>
+            
+            <button
+              onClick={handleToggleSiteStatus}
+              className={`w-full text-left px-4 py-3 mb-8 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-between ${
+                siteStatus 
+                  ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg" 
+                  : "bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 shadow-lg"
+              }`}
+            >
+              <span className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                {siteStatus ? "Site is Online" : "Site is Offline"}
+              </span>
+              <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">
+                {siteStatus ? "ON" : "OFF"}
+              </span>
+            </button>
           </div>
-          <h2 className="text-xl font-semibold mb-6 text-center text-white">Admin Dashboard</h2>
-          <button
-            onClick={handleToggleSiteStatus}
-            className={`w-full text-left px-4 py-3 mb-8 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-between ${
-              siteStatus 
-                ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg" 
-                : "bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 shadow-lg"
-            }`}
-          >
-            <span className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              {siteStatus ? "Site is Online" : "Site is Offline"}
-            </span>
-            <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">
-              {siteStatus ? "ON" : "OFF"}
-            </span>
-          </button>
-          <div>
+          
+          <div className="flex-grow overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <ul className="space-y-1.5">
               {["branch", "category", "subcategory", "foodItem", "orders", "items", "allCategories", "allSubcategories", "discountSettings", "deliveryAreas", "statistics"].map((tab) => (
                 <li key={tab}>
@@ -502,18 +506,41 @@ export default function AdminPortal() {
               ))}
             </ul>
           </div>
+          
+          {/* Settings Button (Desktop) - Now at the bottom */}
+          <div className="flex-shrink-0 mt-4 pt-4 border-t border-white border-opacity-20">
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="w-full px-4 py-3 rounded-lg text-sm font-medium bg-white bg-opacity-10 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-between group"
+            >
+              <span className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                System Settings
+              </span>
+              <span className="bg-white bg-opacity-20 rounded-full p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="block md:hidden bg-gradient-to-r from-[#ba0000] to-[#930000] text-white p-4">
-          <div className="flex items-center justify-center mb-2">
-            <Image 
-              src="/logo.png" 
-              alt="Tipu Restaurant Logo" 
-              width={60} 
-              height={60} 
-              className="object-contain drop-shadow-md"
-            />
-            <h2 className="text-lg font-semibold ml-2">Tipu Admin</h2>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <Image 
+                src="/logo.png" 
+                alt="Tipu Restaurant Logo" 
+                width={60} 
+                height={60} 
+                className="object-contain drop-shadow-md"
+              />
+              <h2 className="text-lg font-semibold ml-2">Tipu Admin</h2>
+            </div>
           </div>
           <button
             onClick={handleToggleSiteStatus}
@@ -537,6 +564,18 @@ export default function AdminPortal() {
                 {tab.replace(/([A-Z])/g, " $1").replace(/^\w/, (c) => c.toUpperCase())}
               </button>
             ))}
+            
+            {/* Settings Button (Mobile) - added to the tab list */}
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 bg-white bg-opacity-10 hover:bg-opacity-20 flex items-center space-x-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Settings</span>
+            </button>
           </div>
         </div>
 
@@ -561,6 +600,11 @@ export default function AdminPortal() {
           </div>
         </div>
       </div>
+      
+      <SettingsPopup 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
       
       {showConfirmation && (
         <ConfirmationDialog 

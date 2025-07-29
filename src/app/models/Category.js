@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
 
+if (mongoose.models.Category) {
+  delete mongoose.models.Category;
+}
+
 const CategorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -8,9 +12,9 @@ const CategorySchema = new mongoose.Schema(
       ref: "Branch",
       required: true,
     },
+    image: { type: String, required: true } 
   },
   { timestamps: true }
 );
 
-export default mongoose.models.Category ||
-  mongoose.model("Category", CategorySchema);
+export default mongoose.model("Category", CategorySchema);

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
 
-// Move parsing function outside component to avoid recreation on each render
 const extractValue = (field) => {
   if (typeof field === "object" && field !== null) {
     if (field.$numberInt) return parseInt(field.$numberInt, 10);
@@ -49,7 +48,6 @@ const parseItemName = (itemName) => {
   }
 };
 
-// Skeleton component for table rows
 const TableRowSkeleton = () => (
   <tr className="animate-pulse">
     <td className="p-2 border"><div className="h-4 bg-gray-200 rounded w-8"></div></td>
@@ -64,7 +62,6 @@ const TableRowSkeleton = () => (
   </tr>
 );
 
-// Skeleton for order details modal
 const OrderDetailsSkeleton = () => (
   <div className="animate-pulse space-y-4">
     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -100,48 +97,37 @@ export default function OrderList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [error, setError] = useState(null); // New state for error tracking
+  const [error, setError] = useState(null); 
   const ordersPerPage = 10;
 
   const [dateFilter, setDateFilter] = useState("today");
   const [customDate, setCustomDate] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   
-  // Cache for storing previously fetched pages
   const [pageCache, setPageCache] = useState({});
-  // Track if filters have changed which would invalidate the cache
   const [cacheKey, setCacheKey] = useState("");
 
-  // Generate a unique cache key based on filters
   const generateCacheKey = useCallback(() => {
     return `${dateFilter}-${customDate || 'none'}-${typeFilter}`;
   }, [dateFilter, customDate, typeFilter]);
 
-  // Check if we need to invalidate cache due to filter changes
   useEffect(() => {
     const newCacheKey = generateCacheKey();
     if (newCacheKey !== cacheKey) {
-      // Clear cache when filters change
       setPageCache({});
       setCacheKey(newCacheKey);
-      // Reset to first page when filters change
       setCurrentPage(1);
     }
   }, [dateFilter, customDate, typeFilter, cacheKey, generateCacheKey]);
 
-  // Fetch orders with server-side pagination and filtering
   const fetchOrders = useCallback(async (page = 1) => {
-    // Generate current cache key
     const currentCacheKey = generateCacheKey();
     
-    // Clear previous error state
     setError(null);
     
-    // Check if we have cached data for this page and these filters
     const cacheEntry = pageCache[`${currentCacheKey}-${page}`];
     
     if (cacheEntry) {
-      // Use cached data instead of making a new API call
       console.log(`Using cached data for page ${page}`);
       setOrders(cacheEntry.orders);
       setTotalOrders(cacheEntry.totalCount);
@@ -150,10 +136,8 @@ export default function OrderList() {
       return;
     }
     
-    // No cache hit, proceed with API call
     setLoading(true);
     try {
-      // Build query parameters for filtering
       const params = new URLSearchParams({
         page,
         limit: ordersPerPage,
@@ -161,7 +145,6 @@ export default function OrderList() {
         typeFilter,
       });
       
-      // Add custom date if necessary
       if (dateFilter === "custom" && customDate) {
         params.append("customDate", customDate);
       }
@@ -176,22 +159,18 @@ export default function OrderList() {
       const data = await res.json();
       
       if (data && Array.isArray(data.orders)) {
-        // Create order numbers in one pass
         const mapping = {};
         data.orders.forEach((order, index) => {
           const idVal = String(extractValue(order._id));
-          // Use global index to generate consistent order numbers
           const globalIndex = (page - 1) * ordersPerPage + index;
           mapping[idVal] = "tipu-" + (globalIndex + 1).toString().padStart(3, "0");
         });
         
-        // Update state
         setOrders(data.orders);
         setTotalOrders(data.totalCount || data.orders.length);
         setTotalPages(data.totalPages || Math.ceil(data.totalCount / ordersPerPage));
         setOrderNumbers(mapping);
         
-        // Cache the results
         setPageCache(prev => ({
           ...prev,
           [`${currentCacheKey}-${page}`]: {
@@ -199,7 +178,7 @@ export default function OrderList() {
             totalCount: data.totalCount || data.orders.length,
             totalPages: data.totalPages || Math.ceil(data.totalCount / ordersPerPage),
             orderNumbers: mapping,
-            timestamp: Date.now() // Add timestamp for cache invalidation if needed
+            timestamp: Date.now() 
           }
         }));
       } else {
@@ -222,19 +201,15 @@ export default function OrderList() {
     }
   }, [dateFilter, customDate, typeFilter, ordersPerPage, pageCache, generateCacheKey]);
 
-  // Fetch orders when page changes
   useEffect(() => {
     const controller = new AbortController();
     fetchOrders(currentPage);
     return () => controller.abort();
   }, [fetchOrders, currentPage]);
 
-  // Cache for order details to avoid refetching
   const [orderDetailsCache, setOrderDetailsCache] = useState({});
 
-  // Fetch single order details when needed
   const fetchOrderDetails = useCallback(async (orderId) => {
-    // Check cache first
     if (orderDetailsCache[orderId]) {
       return orderDetailsCache[orderId];
     }
@@ -247,7 +222,6 @@ export default function OrderList() {
       }
       const order = await res.json();
       
-      // Cache the order details
       setOrderDetailsCache(prev => ({
         ...prev,
         [orderId]: order
@@ -275,18 +249,15 @@ export default function OrderList() {
       
       const updatedOrder = await res.json();
       
-      // Update orders immutably
       setOrders(prev => 
         prev.map(order => 
           String(extractValue(order._id)) === orderId ? updatedOrder : order
         )
       );
       
-      // Also update the cache
       setPageCache(prevCache => {
         const updatedCache = { ...prevCache };
         
-        // Update order in all cached pages
         Object.keys(updatedCache).forEach(key => {
           if (updatedCache[key] && updatedCache[key].orders) {
             updatedCache[key].orders = updatedCache[key].orders.map(order => 
@@ -298,7 +269,6 @@ export default function OrderList() {
         return updatedCache;
       });
       
-      // Update order details cache
       setOrderDetailsCache(prev => ({
         ...prev,
         [orderId]: updatedOrder
@@ -323,22 +293,18 @@ export default function OrderList() {
         return;
       }
       
-      // Update state immutably
       setOrders(prev => 
         prev.filter(order => String(extractValue(order._id)) !== orderId)
       );
       
-      // Also update the cache
       setPageCache(prevCache => {
         const updatedCache = { ...prevCache };
         
-        // Remove order from all cached pages
         Object.keys(updatedCache).forEach(key => {
           if (updatedCache[key] && updatedCache[key].orders) {
             updatedCache[key].orders = updatedCache[key].orders.filter(order => 
               String(extractValue(order._id)) !== orderId
             );
-            // Also update the totalCount
             if (updatedCache[key].totalCount > 0) {
               updatedCache[key].totalCount -= 1;
             }
@@ -348,21 +314,18 @@ export default function OrderList() {
         return updatedCache;
       });
       
-      // Remove from order details cache
       setOrderDetailsCache(prev => {
         const updated = { ...prev };
         delete updated[orderId];
         return updated;
       });
       
-      // Also update total count
       setTotalOrders(prev => Math.max(0, prev - 1));
       
       if (selectedOrder && String(extractValue(selectedOrder._id)) === orderId) {
         setSelectedOrder(null);
       }
       
-      // If deleting reduces the page count and we're on the last page, go to previous page
       const newTotalPages = Math.ceil((totalOrders - 1) / ordersPerPage);
       if (currentPage > newTotalPages && currentPage > 1) {
         setCurrentPage(currentPage - 1);
@@ -377,11 +340,9 @@ export default function OrderList() {
     window.scrollTo(0, 0);
   }, []);
 
-  // View order details
   const viewOrderDetails = useCallback(async (order) => {
-    // If it's a summary with limited fields, fetch full details first
     if (!order.items) {
-      setSelectedOrder(order); // Show modal immediately with available data
+      setSelectedOrder(order); 
       setModalLoading(true);
       const fullOrder = await fetchOrderDetails(String(extractValue(order._id)));
       setModalLoading(false);
@@ -639,19 +600,16 @@ export default function OrderList() {
         </thead>
         <tbody>
           {loading ? (
-            // Skeleton loading state for table
             Array(ordersPerPage).fill(0).map((_, index) => (
               <TableRowSkeleton key={index} />
             ))
           ) : error ? (
-            // Show error message if there's an error
             <tr>
               <td colSpan="9" className="text-center p-4 text-red-500">
                 {error}
               </td>
             </tr>
           ) : orders.length === 0 ? (
-            // Show "No orders found" message when there are no orders
             <tr>
               <td colSpan="9" className="text-center p-4">No orders found.</td>
             </tr>
@@ -720,7 +678,6 @@ export default function OrderList() {
         </tbody>
       </table>
 
-      {/* Pagination Component */}
       {!loading && !error && totalPages > 1 && (
         <div className="flex items-center justify-center mt-6 space-x-1">
           <button

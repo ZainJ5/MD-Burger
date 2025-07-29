@@ -12,7 +12,6 @@ export default function CategoryList() {
     try {
       const res = await fetch("/api/categories");
       const data = await res.json();
-      console.log("Fetched categories:", data); 
       setCategories(data);
     } catch (error) {
       toast.error("Error fetching categories");

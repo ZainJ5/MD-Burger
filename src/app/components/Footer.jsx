@@ -1,45 +1,95 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay } from 'swiper/modules'
 import 'swiper/css'
 
 export default function Footer() {
+  const [footerData, setFooterData] = useState({
+    restaurant: {
+      name: "Tipu Burger & Broast",
+      logo: "/logo.png",
+      address: "Clifton Center، Shop No 1, Clifton Shopping Arcade، Bank Road, Block 5 Clifton, Karachi, 75600",
+      description: "The best food in Town! Established in 1993. At the time of opening we started with the bun kabab's but now we have opened the complete FAST FOOD and BAR-B-Q. Just all pure are being used here.",
+      establishedYear: 1993,
+      mapsLink: "https://maps.app.goo.gl/iLFtzPRK4iR1Yc9P9"
+    },
+    contact: {
+      uanNumber: "021 - 111 822 111",
+      whatsappNumbers: ["0333 2245706", "0346 3332682"],
+      openingHours: "11:30 am to 3:30 am"
+    },
+    appLinks: {
+      appStore: "https://restaurant-website-pi-rouge.vercel.app/",
+      googlePlay: "https://restaurant-website-pi-rouge.vercel.app/"
+    },
+    developer: {
+      name: "ZABS Creatives",
+      contact: "923142300331"
+    },
+    sliderImages: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFooterData = async () => {
+      try {
+        const response = await fetch('/api/footer');
+        if (response.ok) {
+          const data = await response.json();
+          setFooterData(data);
+        } else {
+          console.error("Failed to fetch footer data");
+        }
+      } catch (error) {
+        console.error("Error fetching footer data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchFooterData();
+  }, []);
+
   return (
     <footer className="bg-white border-t">
       <div className="max-w-7xl mx-auto px-4 pb-12 sm:px-6 lg:px-8 relative">
         <Link href="/">
-          <div className="relative rounded-full border-4 border-yellow-400 w-32 h-32 
-                          bg-white absolute left-1/2 top-[0px] transform -translate-x-1/2 -translate-y-1/2 z-10 overflow-hidden">
-            <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div className="relative rounded-full border-4 border-yellow-400 w-32 h-32  bg-white absolute left-1/2 top-[0px] transform -translate-x-1/2 -translate-y-1/2 z-10 overflow-hidden">
+            <img 
+              src={footerData.restaurant.logo || "/logo.png"} 
+              alt={footerData.restaurant.name} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
           </div>
         </Link>
 
         <div className="text-center mt-[-50px]">
-          <h2 className="text-2xl font-bold">Tipu Burger &amp; Broast</h2>
+          <h2 className="text-2xl font-bold">{footerData.restaurant.name}</h2>
 
           <p className="mt-2">
             <Link
-              href="https://maps.app.goo.gl/iLFtzPRK4iR1Yc9P9"
+              href={footerData.restaurant.mapsLink}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline"
             >
-              Clifton Center، Shop No 1, Clifton Shopping Arcade، Bank Road, Block 5 Clifton, Karachi, 75600
+              {footerData.restaurant.address}
             </Link>
           </p>
 
           <p className="mt-4 text-gray-900 max-w-2xl mx-auto">
-            The best food in Town! Established in 1993. At the time of opening we started
-            with the bun kabab's but now we have opened the complete FAST FOOD and BAR-B-Q.
-            Just all pure are being used here.
+            {footerData.restaurant.description}
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-12">
             <div>
               <h3 className="font-semibold">UAN Number</h3>
               <p>
-                <a href="tel:+92111822111" className="font-bold text-black hover:underline">
-                  021 - 111 822 111
+                <a href={`tel:${footerData.contact.uanNumber}`} className="font-bold text-black hover:underline">
+                  {footerData.contact.uanNumber}
                 </a>
               </p>
             </div>
@@ -47,29 +97,35 @@ export default function Footer() {
             <div className="sm:border-x sm:px-8 sm:border-x-gray-500">
               <h3 className="font-semibold">WhatsApp</h3>
               <div className="flex items-center space-x-1">
-                <a
-                  href="https://wa.me/923332245706"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-black hover:underline"
-                >
-                  0333 2245706
-                </a>
-                <span>/</span>
-                <a
-                  href="https://wa.me/923463332682"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-black hover:underline"
-                >
-                  0346 3332682
-                </a>
+                {footerData.contact.whatsappNumbers.length > 0 && (
+                  <a
+                    href={`https://wa.me/${footerData.contact.whatsappNumbers[0].replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-black hover:underline"
+                  >
+                    {footerData.contact.whatsappNumbers[0]}
+                  </a>
+                )}
+                {footerData.contact.whatsappNumbers.length > 1 && (
+                  <>
+                    <span>/</span>
+                    <a
+                      href={`https://wa.me/${footerData.contact.whatsappNumbers[1].replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-black hover:underline"
+                    >
+                      {footerData.contact.whatsappNumbers[1]}
+                    </a>
+                  </>
+                )}
               </div>
             </div>
 
             <div>
               <h3 className="font-semibold">Timing</h3>
-              <p className="font-bold text-black">11:30 am to 3:30 am</p>
+              <p className="font-bold text-black">{footerData.contact.openingHours}</p>
             </div>
           </div>
         </div>
@@ -95,16 +151,25 @@ export default function Footer() {
           speed={1000}
           allowTouchMove={true}
         >
-          {Array.from({ length: 17 }, (_, i) => i + 1)
-            .filter((num) => num !== 4)
-            .map((num) => (
-              <SwiperSlide key={num}>
+          {footerData.sliderImages && footerData.sliderImages.length > 0 ? (
+            footerData.sliderImages.map((image, index) => (
+              <SwiperSlide key={`api-${index}`}>
                 <div className="relative w-full h-58 object-cover">
-                  <img src={`/${num}.webp`} alt={`Image ${num}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={image} alt={`Image ${index+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               </SwiperSlide>
-            ))}
-
+            ))
+          ) : (
+            Array.from({ length: 17 }, (_, i) => i + 1)
+              .filter((num) => num !== 4)
+              .map((num) => (
+                <SwiperSlide key={`static-${num}`}>
+                  <div className="relative w-full h-58 object-cover">
+                    <img src={`/${num}.webp`} alt={`Image ${num}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                </SwiperSlide>
+              ))
+          )}
         </Swiper>
       </div>
 
@@ -113,7 +178,7 @@ export default function Footer() {
 
         <div className="flex justify-center space-x-4">
           <Link
-            href="https://restaurant-website-pi-rouge.vercel.app/"
+            href={footerData.appLinks.appStore}
             target="_blank"
             rel="noopener noreferrer"
             title="Download on the App Store"
@@ -130,7 +195,7 @@ export default function Footer() {
           </Link>
 
           <Link
-            href="https://restaurant-website-pi-rouge.vercel.app/"
+            href={footerData.appLinks.googlePlay}
             target="_blank"
             rel="noopener noreferrer"
             title="Google Play"
@@ -155,14 +220,14 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between text-sm text-white space-y-4 sm:space-y-0">
             <p>
-              © 2025 Tipu Burger &amp; Broast. All Rights Reserved. Develop by{" "}
+              © {new Date().getFullYear()} {footerData.restaurant.name}. All Rights Reserved. Develop by{" "}
               <a
-                href="https://wa.me/923142300331"
+                href={`https://wa.me/${footerData.developer.contact?.replace(/[^0-9]/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"
               >
-              ZABS Creatives
+                {footerData.developer.name}
               </a>
             </p>
             <div className="space-x-4">

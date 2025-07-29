@@ -3,6 +3,8 @@ import connectDB from "@/app/lib/mongoose";
 import Category from "@/app/models/Category";
 import Subcategory from "@/app/models/Subcategory";
 import FoodItem from "@/app/models/FoodItem";
+import fs from 'fs/promises';
+import path from 'path';
 
 export async function DELETE(request, { params }) {
   try {
@@ -14,9 +16,25 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ message: "Category not found" }, { status: 404 });
     }
 
+    if (category.image) {
+      try {
+        const fullPath = path.join(process.cwd(), 'public', category.image.replace(/^\//, ''));
+        await fs.unlink(fullPath);
+      } catch (fileError) {
+      }
+    }
+
     const subcategories = await Subcategory.find({ category: id });
 
     for (const sub of subcategories) {
+      if (sub.image) {
+        try {
+          const subImagePath = path.join(process.cwd(), 'public', sub.image.replace(/^\//, ''));
+          await fs.unlink(subImagePath);
+        } catch (fileError) {
+        }
+      }
+      
       await FoodItem.deleteMany({ subcategory: sub._id });
     }
 
@@ -29,7 +47,6 @@ export async function DELETE(request, { params }) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting category:", error);
     return NextResponse.json(
       { message: "Failed to delete category" },
       { status: 500 }

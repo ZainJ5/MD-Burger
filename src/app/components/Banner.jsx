@@ -1,14 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useMenuStore } from '../../store/menu';
-
-const DEFAULT_BANNER = "Hot Deals";
-
-const preloadImage = (src) => {
-  const img = new Image();
-  img.src = src;
-};
 
 export default function Banner() {
   const activeCategory = useMenuStore((state) => state.activeCategory);
@@ -19,16 +12,16 @@ export default function Banner() {
   const [activeSubcategoryName, setActiveSubcategoryName] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [bannerData, setBannerData] = useState({
-    src: `/${DEFAULT_BANNER}.webp`,
-    alt: `${DEFAULT_BANNER} banner`,
-    isLoading: false,
+    src: "",
+    alt: "Menu banner",
+    isLoading: true,
     hasError: false
   });
 
   const categoriesCache = useRef(null);
   const subcategoriesCache = useRef(null);
   const imageCache = useRef(new Map());
-  const prevBannerName = useRef(DEFAULT_BANNER);
+  const currentBannerSrc = useRef("");
 
   useEffect(() => {
     const checkIsMobile = () => setIsMobile(window.innerWidth < 768);
@@ -41,8 +34,6 @@ export default function Banner() {
     } catch (e) {
       window.addEventListener('resize', checkIsMobile);
     }
-    
-    preloadImage(`/${DEFAULT_BANNER}.webp`);
     
     return () => {
       if (resizeObserver) {
@@ -89,18 +80,6 @@ export default function Banner() {
     }
   }, []);
 
-  const bannerName = useMemo(() => {
-    return activeSubcategoryName || activeCategoryName || DEFAULT_BANNER;
-  }, [activeSubcategoryName, activeCategoryName]);
-
-  const bannerAlt = useMemo(() => {
-    return activeSubcategoryName
-      ? `${activeSubcategoryName} subcategory banner`
-      : activeCategoryName 
-        ? `${activeCategoryName} category banner` 
-        : `${DEFAULT_BANNER} banner`;
-  }, [activeSubcategoryName, activeCategoryName]);
-
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
@@ -110,15 +89,12 @@ export default function Banner() {
         if (isMounted) {
           setActiveCategoryName(null);
           setActiveSubcategoryName(null);
-          
-          if (!isMobile) {
-            setBannerData({
-              src: `/${DEFAULT_BANNER}.webp`,
-              alt: `${DEFAULT_BANNER} banner`,
-              isLoading: false,
-              hasError: false
-            });
-          }
+          setBannerData({
+            src: "",
+            alt: "Menu banner",
+            isLoading: false,
+            hasError: true
+          });
         }
         return;
       }
@@ -133,29 +109,79 @@ export default function Banner() {
 
         const activeCatId = getId(activeCategory);
         const matchedCategory = categoriesData?.find(cat => getId(cat._id) === activeCatId);
-        const catName = matchedCategory ? matchedCategory.name : null;
         
-        if (isMounted) {
-          setActiveCategoryName(catName);
-        }
-
-        if (activeSubcategory && subcategoriesData) {
-          const activeSubcatId = getId(activeSubcategory);
-          const matchedSubcategory = subcategoriesData.find(
-            sub => getId(sub._id) === activeSubcatId
-          );
+        if (matchedCategory) {
+          setActiveCategoryName(matchedCategory.name);
           
-          if (isMounted) {
-            setActiveSubcategoryName(matchedSubcategory?.name || null);
+          // If we have an active subcategory, prioritize its banner
+          if (activeSubcategory && subcategoriesData) {
+            const activeSubcatId = getId(activeSubcategory);
+            const matchedSubcategory = subcategoriesData.find(
+              sub => getId(sub._id) === activeSubcatId
+            );
+            
+            if (matchedSubcategory) {
+              setActiveSubcategoryName(matchedSubcategory.name || null);
+              
+              if (matchedSubcategory.image && currentBannerSrc.current !== matchedSubcategory.image) {
+                currentBannerSrc.current = matchedSubcategory.image;
+                setBannerData({
+                  src: matchedSubcategory.image,
+                  alt: `${matchedSubcategory.name} subcategory banner`,
+                  isLoading: false,
+                  hasError: false
+                });
+              }
+            } else {
+              setActiveSubcategoryName(null);
+              
+              // Fallback to category banner
+              if (matchedCategory.image && currentBannerSrc.current !== matchedCategory.image) {
+                currentBannerSrc.current = matchedCategory.image;
+                setBannerData({
+                  src: matchedCategory.image,
+                  alt: `${matchedCategory.name} category banner`,
+                  isLoading: false,
+                  hasError: false
+                });
+              }
+            }
+          } else {
+            setActiveSubcategoryName(null);
+            
+            // No active subcategory, use category banner
+            if (matchedCategory.image && currentBannerSrc.current !== matchedCategory.image) {
+              currentBannerSrc.current = matchedCategory.image;
+              setBannerData({
+                src: matchedCategory.image,
+                alt: `${matchedCategory.name} category banner`,
+                isLoading: false,
+                hasError: false
+              });
+            }
           }
-        } else if (isMounted) {
+        } else {
+          // No matched category
+          setActiveCategoryName(null);
           setActiveSubcategoryName(null);
+          setBannerData({
+            src: "",
+            alt: "Menu banner",
+            isLoading: false,
+            hasError: true
+          });
         }
       } catch (error) {
         console.error("Error processing data:", error);
         if (isMounted) {
           setActiveCategoryName(null);
           setActiveSubcategoryName(null);
+          setBannerData({
+            src: "",
+            alt: "Menu banner",
+            isLoading: false,
+            hasError: true
+          });
         }
       }
     }
@@ -168,76 +194,34 @@ export default function Banner() {
     };
   }, [activeCategory, activeSubcategory, setActiveCategoryName, fetchDataOnce, getId, isMobile]);
 
-  useEffect(() => {
-    if (bannerName && bannerName !== prevBannerName.current) {
-      if (!imageCache.current.has(bannerName)) {
-        const img = new Image();
-        
-        img.onload = () => {
-          imageCache.current.set(bannerName, true);
-          if (bannerName === prevBannerName.current) {
-            setBannerData({
-              src: `/${bannerName}.webp`,
-              alt: bannerAlt,
-              isLoading: false,
-              hasError: false
-            });
-          }
-        };
-        
-        img.onerror = () => {
-          imageCache.current.set(bannerName, false);
-          if (bannerName === prevBannerName.current) {
-            setBannerData(prev => ({
-              ...prev,
-              hasError: true
-            }));
-          }
-        };
-        
-        img.src = `/${bannerName}.webp`;
-        
-        setBannerData(prev => ({
-          ...prev,
-          src: `/${bannerName}.webp`,
-          alt: bannerAlt,
-          isLoading: true,
-          hasError: false
-        }));
-      } else {
-        setBannerData({
-          src: `/${bannerName}.webp`,
-          alt: bannerAlt,
-          isLoading: false,
-          hasError: imageCache.current.get(bannerName) === false
-        });
-      }
-      
-      prevBannerName.current = bannerName;
-    }
-  }, [bannerName, bannerAlt]);
+  // Display a placeholder if no banner image is available
+  if (!bannerData.src || bannerData.hasError) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-16 mt-4">
+        <div className="w-full h-auto min-h-[180px] bg-gray-200 rounded-md flex items-center justify-center">
+          <span className="text-black font-bold">
+            {activeCategoryName || activeSubcategoryName || 'Menu'}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (isMobile) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-16 mt-4">
         <div className="relative w-full">
           <img
-            src={`/${bannerName}.webp`}
-            alt={bannerAlt}
+            src={bannerData.src}
+            alt={bannerData.alt}
             className="w-full h-auto rounded-md object-contain"
             loading="eager"
-            fetchpriority="high"
             decoding="async"
-            onError={(e) => {
-              console.error(`Failed to load banner image: ${bannerName}.webp`);
-              const parent = e.target.parentNode;
-              if (parent) {
-                const fallback = document.createElement('div');
-                fallback.className = 'h-32 w-full flex items-center justify-center bg-gray-200 rounded-md';
-                fallback.innerHTML = `<span class="text-black font-bold">${bannerName}</span>`;
-                
-                parent.replaceChild(fallback, e.target);
-              }
+            onError={() => {
+              setBannerData(prev => ({
+                ...prev,
+                hasError: true
+              }));
             }}
           />
         </div>
@@ -248,30 +232,20 @@ export default function Banner() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-16 mt-4">
       <div className="relative w-full h-auto min-h-[180px] bg-gray-200 rounded-md overflow-hidden">
-        {bannerData.hasError ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-black font-bold">
-              {bannerName}
-            </span>
-          </div>
-        ) : (
-          <img
-            src={bannerData.src}
-            alt={bannerData.alt}
-            className="w-full h-auto object-contain rounded-md"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-            onError={(e) => {
-              console.error(`Failed to load banner image: ${bannerData.src}`);
-              imageCache.current.set(bannerName, false);
-              setBannerData(prev => ({
-                ...prev,
-                hasError: true
-              }));
-            }}
-          />
-        )}
+        <img
+          src={bannerData.src}
+          alt={bannerData.alt}
+          className="w-full h-auto object-contain rounded-md"
+          loading="eager"
+          decoding="async"
+          onError={() => {
+            imageCache.current.set(bannerData.src, false);
+            setBannerData(prev => ({
+              ...prev,
+              hasError: true
+            }));
+          }}
+        />
       </div>
     </div>
   );
