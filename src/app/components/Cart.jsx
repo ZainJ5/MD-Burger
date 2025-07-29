@@ -54,7 +54,7 @@ export default function CartDrawer({ isOpen, onClose }) {
     <div className={`fixed top-0 right-0 w-full sm:w-96 h-full bg-white z-50 transform 
       ${isOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-out 
       shadow-2xl border-l-4 border-red-600 rounded-l-3xl overflow-hidden`}>
-      
+
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #fee2e2; border-radius: 4px; }
@@ -88,15 +88,13 @@ export default function CartDrawer({ isOpen, onClose }) {
                   <div className="flex gap-4">
                     <div className="h-24 w-24 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-red-100 flex-shrink-0 relative shadow-sm">
                       {item.imageUrl && item.imageUrl !== '' ? (
-                        <Image 
-                          src={item.imageUrl} 
-                          alt={item.title} 
-                          fill 
-                          style={{ objectFit: 'cover' }}
-                          loading="lazy" 
-                          placeholder="blur" 
-                          blurDataURL="/placeholder.svg" 
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
                         />
+
                       ) : (
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                           <span className="text-gray-500 text-sm">No Image</span>
@@ -112,8 +110,8 @@ export default function CartDrawer({ isOpen, onClose }) {
                           </p>
                         </div>
                         <div className="flex items-center border border-gray-200 rounded-full shadow-sm bg-white">
-                          <button 
-                            className="w-8 h-8 flex items-center justify-center text-red-600 rounded-l-full hover:bg-red-50 transition-colors" 
+                          <button
+                            className="w-8 h-8 flex items-center justify-center text-red-600 rounded-l-full hover:bg-red-50 transition-colors"
                             onClick={() => handleDecrease(index, item)}
                           >
                             <Minus className="w-4 h-4" />
@@ -121,8 +119,8 @@ export default function CartDrawer({ isOpen, onClose }) {
                           <span className="w-8 text-center font-medium text-gray-700">
                             {item.quantity || 1}
                           </span>
-                          <button 
-                            className="w-8 h-8 flex items-center justify-center text-red-600 rounded-r-full hover:bg-red-50 transition-colors" 
+                          <button
+                            className="w-8 h-8 flex items-center justify-center text-red-600 rounded-r-full hover:bg-red-50 transition-colors"
                             onClick={() => handleIncrease(index, item)}
                           >
                             <Plus className="w-4 h-4" />
@@ -146,7 +144,7 @@ export default function CartDrawer({ isOpen, onClose }) {
 
                       {/* Remove item button */}
                       <div className="mt-2 flex justify-end">
-                        <button 
+                        <button
                           onClick={() => handleRemove(index, item)}
                           aria-label={`Remove ${item.title} from cart`}
                           className="flex items-center text-sm text-red-600 hover:text-red-800 transition-colors"
@@ -162,8 +160,8 @@ export default function CartDrawer({ isOpen, onClose }) {
           )}
 
           <div className="p-4 border-y border-gray-100 bg-gray-50">
-            <button 
-              className="flex items-center text-red-700 font-semibold hover:text-red-800 transition-colors w-full justify-center" 
+            <button
+              className="flex items-center text-red-700 font-semibold hover:text-red-800 transition-colors w-full justify-center"
               onClick={handleAddMoreItems}
             >
               <Plus className="w-5 h-5 mr-2 text-red-600" />
@@ -179,8 +177,8 @@ export default function CartDrawer({ isOpen, onClose }) {
                 <span className="font-bold text-gray-900">Subtotal</span>
                 <span className="font-bold text-red-800">Rs. {total.toLocaleString()}</span>
               </div>
-              <button 
-                onClick={handleCheckout} 
+              <button
+                onClick={handleCheckout}
                 className="w-full py-3.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2 hover:scale-[1.02] transform active:scale-95"
               >
                 <span>Secure Checkout</span>
