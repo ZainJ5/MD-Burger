@@ -14,20 +14,21 @@ import PromoCodesManager from "./PromoCodesManager";
 import Statistics from "./Statistics";
 import SettingsPopup from "./SettingsPupup";
 
-const ConfirmationDialog = ({ message, onConfirm, onCancel }) => (
+const ConfirmationDialog = ({ title, message, onConfirm, onCancel }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-auto shadow-xl">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">{message}</h3>
+    <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-auto shadow-2xl border border-gray-200">
+      {title && <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>}
+      <p className="text-gray-700 mb-6">{message}</p>
       <div className="flex justify-end space-x-3">
         <button
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition"
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           Confirm
         </button>
@@ -36,7 +37,7 @@ const ConfirmationDialog = ({ message, onConfirm, onCancel }) => (
   </div>
 );
 
-export default function AdminPortal() {
+export default function AdminPortal({ onLogout }) {
   const [selectedTab, setSelectedTab] = useState("branch");
   const [branches, setBranches] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -48,7 +49,10 @@ export default function AdminPortal() {
   const [newAreaFee, setNewAreaFee] = useState("");
   const [editingArea, setEditingArea] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState("");
 
   useEffect(() => {
     fetchBranches();
@@ -57,7 +61,44 @@ export default function AdminPortal() {
     fetchFoodItems();
     fetchSiteStatus();
     fetchDeliveryAreas();
+    
+    setCurrentDateTime(new Date().toLocaleString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }));
+    
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date().toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }));
+    }, 60000);
+    
+    document.body.style.overflow = "hidden";
+    
+    return () => {
+      document.body.style.overflow = "auto";
+      clearInterval(timer);
+    };
   }, []);
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirmation(true);
+  };
 
   const fetchBranches = async () => {
     try {
@@ -375,7 +416,7 @@ export default function AdminPortal() {
               <div className="flex space-x-4">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-md hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                 >
                   {editingArea ? "Update Area" : "Add Area"}
                 </button>
@@ -432,175 +473,298 @@ export default function AdminPortal() {
     }
   };
 
+  // Define navigation items for better organization
+  const navigationItems = [
+    { id: "branch", label: "Branch Management", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
+    { id: "category", label: "Add Category", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6" },
+    { id: "subcategory", label: "Add Subcategory", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6" },
+    { id: "foodItem", label: "Add Food Item", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6" },
+    { id: "orders", label: "Orders Management", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" },
+    { id: "items", label: "Food Items", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+    { id: "allCategories", label: "Categories", icon: "M4 6h16M4 10h16M4 14h16M4 18h16" },
+    { id: "allSubcategories", label: "Subcategories", icon: "M4 6h16M4 10h16M4 14h16M4 18h16" },
+    { id: "discountSettings", label: "Promo Codes", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+    { id: "deliveryAreas", label: "Delivery Areas", icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" },
+    { id: "statistics", label: "Analytics", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+  ];
+
   return (
-    <div className="min-h-screen text-black bg-gradient-to-br from-gray-50 to-gray-200 p-4">
-      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden flex flex-col md:flex-row h-[92vh]">
-        <div 
-          className="hidden md:flex md:flex-col md:w-1/4 bg-gradient-to-br from-[#ba0000] to-[#930000] text-white p-6" 
-          style={{ 
-            scrollbarWidth: 'none', 
-            msOverflowStyle: 'none', 
-          }}
-        >
-          <div className="flex-shrink-0">
-            <div className="flex justify-center mb-8">
+    <div className="h-screen w-screen flex flex-col bg-gray-100 text-black overflow-hidden">
+      {/* Top Bar */}
+      <div className="bg-white border-b border-gray-200 shadow-sm z-20">
+        <div className="flex justify-between items-center px-4 h-16">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              className="md:hidden p-2 rounded-md hover:bg-gray-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div className="flex items-center">
               <Image 
                 src="/logo.png" 
-                alt="Tipu Restaurant Logo" 
-                width={120} 
-                height={120} 
-                className="object-contain drop-shadow-md"
+                alt="Restaurant Logo" 
+                width={40} 
+                height={40} 
+                className="object-contain"
               />
+              <h1 className="ml-2 text-xl font-bold text-red-700 hidden sm:block">Restaurant Management</h1>
             </div>
-            <h2 className="text-xl font-semibold mb-6 text-center text-white">Admin Dashboard</h2>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center text-sm text-gray-500 font-medium bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {currentDateTime}
+            </div>
             
             <button
               onClick={handleToggleSiteStatus}
-              className={`w-full text-left px-4 py-3 mb-8 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-between ${
+              className={`hidden md:flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 shadow-sm ${
                 siteStatus 
-                  ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg" 
-                  : "bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 shadow-lg"
+                  ? "bg-green-100 text-green-800 border border-green-200" 
+                  : "bg-red-100 text-red-800 border border-red-200"
               }`}
             >
-              <span className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                {siteStatus ? "Site is Online" : "Site is Offline"}
-              </span>
-              <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">
-                {siteStatus ? "ON" : "OFF"}
-              </span>
+              <span className={`w-2 h-2 rounded-full mr-2 ${siteStatus ? 'bg-green-500' : 'bg-red-500'}`}></span>
+              {siteStatus ? "Site Online" : "Site Offline"}
             </button>
-          </div>
-          
-          <div className="flex-grow overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <ul className="space-y-1.5">
-              {["branch", "category", "subcategory", "foodItem", "orders", "items", "allCategories", "allSubcategories", "discountSettings", "deliveryAreas", "statistics"].map((tab) => (
-                <li key={tab}>
-                  <button
-                    onClick={() => setSelectedTab(tab)}
-                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 flex items-center ${
-                      selectedTab === tab 
-                        ? "bg-red-800 bg-opacity-70 shadow-md transform translate-x-1 border-l-4 border-white" 
-                        : "hover:bg-red-700 hover:bg-opacity-40"
-                    }`}
-                  >
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      className={`h-4 w-4 mr-3 transition-transform duration-300 ${selectedTab === tab ? 'rotate-90' : ''}`}
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                    {tab.replace(/([A-Z])/g, " $1").replace(/^\w/, (c) => c.toUpperCase())}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          {/* Settings Button (Desktop) - Now at the bottom */}
-          <div className="flex-shrink-0 mt-4 pt-4 border-t border-white border-opacity-20">
+            
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="w-full px-4 py-3 rounded-lg text-sm font-medium bg-white bg-opacity-10 hover:bg-opacity-20 transition-all duration-300 flex items-center justify-between group"
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              title="Settings"
             >
-              <span className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+            
+            <button
+              onClick={confirmLogout}
+              className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-200 flex items-center gap-2 shadow-sm"
+              title="Logout"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar - Desktop */}
+        <aside className="hidden md:flex flex-col w-64 bg-gradient-to-r from-[#ba0000] to-[#930000] text-white shadow-xl z-10">
+          <div className="flex-1 overflow-y-auto py-4 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+            <div className="px-4 py-2">
+              <div className={`mb-6 px-3 py-2.5 rounded-lg ${
+                siteStatus 
+                  ? "bg-green-500 bg-opacity-20 border border-green-600 border-opacity-30" 
+                  : "bg-red-800 bg-opacity-30 border border-red-700 border-opacity-30"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <span className={`w-3 h-3 rounded-full ${siteStatus ? "bg-green-400" : "bg-red-400"}`}></span>
+                    <span className="ml-2 text-sm font-medium text-white">
+                      {siteStatus ? "System Online" : "System Offline"}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={handleToggleSiteStatus}
+                    className={`text-xs px-2 py-1 rounded ${
+                      siteStatus 
+                        ? "bg-green-700 text-green-100 hover:bg-green-600" 
+                        : "bg-red-700 text-red-100 hover:bg-red-600"
+                    }`}
+                  >
+                    Toggle
+                  </button>
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                {navigationItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setSelectedTab(item.id)}
+                    className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      selectedTab === item.id
+                        ? "bg-white text-red-700 shadow-md"
+                        : "text-white hover:bg-red-700 hover:bg-opacity-70"
+                    }`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-5 w-5 mr-3 ${selectedTab === item.id ? "text-red-600" : "text-white"}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                    </svg>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 border-t border-red-700 border-opacity-30">
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-red-900 border border-white bg-opacity-30 text-white hover:bg-red-950 hover:bg-opacity-50 transition-colors"
+            >
+              <span className="flex items-center text-sm font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 System Settings
               </span>
-              <span className="bg-white bg-opacity-20 rounded-full p-1">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="block md:hidden bg-gradient-to-r from-[#ba0000] to-[#930000] text-white p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center">
-              <Image 
-                src="/logo.png" 
-                alt="Tipu Restaurant Logo" 
-                width={60} 
-                height={60} 
-                className="object-contain drop-shadow-md"
-              />
-              <h2 className="text-lg font-semibold ml-2">Tipu Admin</h2>
-            </div>
-          </div>
-          <button
-            onClick={handleToggleSiteStatus}
-            className={`w-full text-center px-3 py-2 mb-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center ${
-              siteStatus 
-                ? "bg-gradient-to-r from-green-500 to-green-600 shadow-md" 
-                : "bg-gradient-to-r from-red-700 to-red-800 shadow-md"
-            }`}
-          >
-            {siteStatus ? "Site is Online (ON)" : "Site is Offline (OFF)"}
-          </button>
-          <div className="flex overflow-x-auto space-x-2 pb-2 no-scrollbar">
-            {["branch", "category", "subcategory", "foodItem", "orders", "items", "allCategories", "allSubcategories", "discountSettings", "deliveryAreas", "statistics"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setSelectedTab(tab)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
-                  selectedTab === tab ? "bg-red-800 shadow-md" : "hover:bg-red-700 hover:bg-opacity-70"
-                }`}
-              >
-                {tab.replace(/([A-Z])/g, " $1").replace(/^\w/, (c) => c.toUpperCase())}
-              </button>
-            ))}
-            
-            {/* Settings Button (Mobile) - added to the tab list */}
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 bg-white bg-opacity-10 hover:bg-opacity-20 flex items-center space-x-1"
-            >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span>Settings</span>
             </button>
           </div>
-        </div>
+        </aside>
 
-        <div className="w-full md:w-3/4 p-4 overflow-y-auto bg-gray-50">
-          <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-            <h1 className="text-2xl font-bold capitalize text-[#ba0000]">
-              {selectedTab.replace(/([A-Z])/g, " $1").replace(/^\w/, (c) => c.toUpperCase())}
-            </h1>
-            <div className="text-sm text-gray-500 font-medium bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200">
-              {new Date().toLocaleString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+        {/* Mobile Sidebar */}
+        {mobileSidebarOpen && (
+          <div className="fixed inset-0 z-40 md:hidden">
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setMobileSidebarOpen(false)}></div>
+            
+            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-red-600 overflow-hidden scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+              <div className="absolute top-0 right-0 -mr-12 pt-2">
+                <button 
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                >
+                  <span className="sr-only">Close sidebar</span>
+                  <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                <div className="flex-shrink-0 flex items-center px-4">
+                  <Image 
+                    src="/logo.png" 
+                    alt="Restaurant Logo" 
+                    width={40} 
+                    height={40} 
+                    className="object-contain"
+                  />
+                  <h2 className="ml-2 text-xl font-bold text-white">Restaurant</h2>
+                </div>
+                <div className="mt-5 px-4">
+                  <div className={`mb-4 p-3 rounded-lg ${
+                    siteStatus 
+                      ? "bg-green-500 bg-opacity-20 border border-green-600 border-opacity-30" 
+                      : "bg-red-800 bg-opacity-30 border border-red-700 border-opacity-30"
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <span className={`w-3 h-3 rounded-full ${siteStatus ? "bg-green-400" : "bg-red-400"}`}></span>
+                        <span className="ml-2 text-sm font-medium text-white">
+                          {siteStatus ? "System Online" : "System Offline"}
+                        </span>
+                      </div>
+                      <button 
+                        onClick={handleToggleSiteStatus}
+                        className={`text-xs px-2 py-1 rounded ${
+                          siteStatus 
+                            ? "bg-green-700 text-green-100" 
+                            : "bg-red-700 text-red-100"
+                        }`}
+                      >
+                        Toggle
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-2 space-y-1">
+                    {navigationItems.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setSelectedTab(item.id);
+                          setMobileSidebarOpen(false);
+                        }}
+                        className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          selectedTab === item.id
+                            ? "bg-white text-red-700 shadow-md"
+                            : "text-white hover:bg-red-700 hover:bg-opacity-70"
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={`h-5 w-5 mr-3 ${selectedTab === item.id ? "text-red-600" : "text-white"}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                        </svg>
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex-shrink-0 flex border-t border-red-700 border-opacity-30 p-4">
+                <button
+                  onClick={confirmLogout}
+                  className="flex-shrink-0 w-full flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-700 hover:bg-red-800 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-            {renderContent()}
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto bg-gray-50 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+          <div className="max-w-7xl mx-auto p-4 lg:p-6">
+            <div className="mb-6 pb-4 border-b border-gray-200">
+              <h1 className="text-2xl font-bold text-gray-900 capitalize flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 mr-2 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={navigationItems.find(item => item.id === selectedTab)?.icon || ""} />
+                </svg>
+                {navigationItems.find(item => item.id === selectedTab)?.label || "Dashboard"}
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Manage your restaurant operations efficiently and effectively.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md border border-gray-100">
+              <div className="p-6">
+                {renderContent()}
+              </div>
+            </div>
           </div>
-        </div>
+        </main>
       </div>
-      
+
       <SettingsPopup 
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -608,9 +772,19 @@ export default function AdminPortal() {
       
       {showConfirmation && (
         <ConfirmationDialog 
+          title="Change Site Status"
           message={`Are you sure you want to turn the site ${siteStatus ? 'OFF' : 'ON'}?`}
           onConfirm={toggleSiteStatus}
           onCancel={() => setShowConfirmation(false)}
+        />
+      )}
+
+      {showLogoutConfirmation && (
+        <ConfirmationDialog 
+          title="Confirm Logout"
+          message="Are you sure you want to logout from the admin panel?"
+          onConfirm={handleLogout}
+          onCancel={() => setShowLogoutConfirmation(false)}
         />
       )}
     </div>
