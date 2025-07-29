@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Image from "next/image";
 
 export default function FooterEditor() {
   const [footerContent, setFooterContent] = useState({
@@ -352,11 +351,10 @@ export default function FooterEditor() {
                 <div className="flex items-center space-x-4">
                   {logoPreview && (
                     <div className="relative h-20 w-20 border rounded-md overflow-hidden">
-                      <Image 
+                      <img 
                         src={logoPreview} 
                         alt="Restaurant logo" 
-                        fill
-                        className="object-contain"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                       />
                     </div>
                   )}
@@ -559,11 +557,10 @@ export default function FooterEditor() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
                     {newSliderPreviews.map((image, index) => (
                       <div key={`new-${index}`} className="relative h-32 border rounded-md overflow-hidden group">
-                        <Image 
+                        <img 
                           src={image} 
                           alt={`New slider image ${index + 1}`}
-                          fill
-                          className="object-cover"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                         <button
                           type="button"
@@ -586,11 +583,10 @@ export default function FooterEditor() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
                     {footerContent.sliderImages.map((imagePath, index) => (
                       <div key={`existing-${index}`} className="relative h-32 border rounded-md overflow-hidden group">
-                        <Image 
+                        <img 
                           src={imagePath} 
                           alt={`Footer slider image ${index + 1}`}
-                          fill
-                          className="object-cover"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                         <button
                           type="button"
