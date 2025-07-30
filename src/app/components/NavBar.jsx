@@ -153,10 +153,11 @@ export default function Navbar() {
                     className="rounded-[9px] relative hover:opacity-90 transition-opacity w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center"
                   >
                     <img
-                      src={item.src}
+                      src={`${item.src}?v=${new Date(navbarData.updatedAt).getTime()}`}
                       alt="Download Menu"
                       className="w-full h-full object-contain rounded-[7px]"
                     />
+
                   </a>
                 );
               }
@@ -170,10 +171,11 @@ export default function Navbar() {
                   className="rounded relative hover:opacity-90 transition-opacity w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center"
                 >
                   <img
-                    src={item.src}
+                    src={`${item.src}?v=${new Date(navbarData.updatedAt).getTime()}`}
                     alt={`${item.platform} icon`}
                     className="w-full h-full object-contain"
                   />
+
                 </Link>
               );
             })}

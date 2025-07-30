@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
@@ -13,6 +13,27 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [logoUrl, setLogoUrl] = useState(null);
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await fetch('/api/footer', { cache: 'no-store' });
+        const data = await res.json();
+
+        const logoPath = data?.restaurant?.logo || '/logo.png';
+        const updatedAt = data?.updatedAt || new Date().toISOString();
+
+        const versionedLogo = `${logoPath}?v=${new Date(updatedAt).getTime()}`;
+        setLogoUrl(versionedLogo);
+      } catch (err) {
+        console.error("Failed to fetch logo:", err);
+        setLogoUrl('/logo.png?v=' + Date.now()); 
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,14 +49,15 @@ export default function Login() {
     <div className="min-h-screen flex items-center text-black justify-center bg-gradient-to-br from-red-100 via-white to-red-100 p-4">
       <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-md transform transition-all hover:shadow-xl">
         <div className="flex justify-center mb-6">
-          <img
-            src="/logo.png"
-            alt="Restaurant Logo"
-            width="120"
-            height="120"
-            className="object-contain"
-          />
-
+          {logoUrl && (
+            <Image
+              src={logoUrl}
+              alt="Restaurant Logo"
+              width={120}
+              height={120}
+              className="object-contain"
+            />
+          )}
         </div>
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">
           Admin Portal
@@ -43,7 +65,7 @@ export default function Login() {
         <p className="text-center text-gray-500 mb-8">
           Welcome to Restaurant Admin
         </p>
-        <div onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
               Username
@@ -80,11 +102,10 @@ export default function Login() {
           <button
             type="submit"
             className="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
-            onClick={handleSubmit}
           >
             Sign In
           </button>
-        </div>
+        </form>
         <p className="mt-6 text-center text-gray-500 text-sm">
           Restaurant Admin Dashboard &copy; {new Date().getFullYear()}
         </p>

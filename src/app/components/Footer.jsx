@@ -59,7 +59,7 @@ export default function Footer() {
         <Link href="/">
           <div className="relative rounded-full border-4 border-yellow-400 w-32 h-32  bg-white left-1/2 top-[0px] transform -translate-x-1/2 -translate-y-1/2 z-10 overflow-hidden">
             <img 
-              src={footerData.restaurant.logo || "/logo.png"} 
+              src={`${footerData.restaurant.logo || "/logo.png"}?v=${new Date(footerData.updatedAt).getTime()}`} 
               alt={footerData.restaurant.name} 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
@@ -155,7 +155,7 @@ export default function Footer() {
             footerData.sliderImages.map((image, index) => (
               <SwiperSlide key={`api-${index}`}>
                 <div className="relative w-full h-58 object-cover">
-                  <img src={image} alt={`Image ${index+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={`${image}?v=${new Date(footerData.updatedAt).getTime()}`} alt={`Image ${index+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               </SwiperSlide>
             ))
@@ -165,7 +165,7 @@ export default function Footer() {
               .map((num) => (
                 <SwiperSlide key={`static-${num}`}>
                   <div className="relative w-full h-58 object-cover">
-                    <img src={`/${num}.webp`} alt={`Image ${num}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={`/${num}.webp?v=${new Date(footerData.updatedAt).getTime()}`} alt={`Image ${num}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 </SwiperSlide>
               ))

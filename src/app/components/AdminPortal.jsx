@@ -473,7 +473,6 @@ export default function AdminPortal({ onLogout }) {
     }
   };
 
-  // Define navigation items for better organization
   const navigationItems = [
     { id: "branch", label: "Branch Management", icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
     { id: "category", label: "Add Category", icon: "M12 6v6m0 0v6m0-6h6m-6 0H6" },
@@ -490,7 +489,6 @@ export default function AdminPortal({ onLogout }) {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-100 text-black overflow-hidden">
-      {/* Top Bar */}
       <div className="bg-white border-b border-gray-200 shadow-sm z-20">
         <div className="flex justify-between items-center px-4 h-16">
           <div className="flex items-center gap-2">
@@ -560,7 +558,6 @@ export default function AdminPortal({ onLogout }) {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Desktop */}
         <aside className="hidden md:flex flex-col w-64 bg-gradient-to-r from-[#ba0000] to-[#930000] text-white shadow-xl z-10">
           <div className="flex-1 overflow-y-auto py-4 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
             <div className="px-4 py-2">
@@ -632,7 +629,6 @@ export default function AdminPortal({ onLogout }) {
           </div>
         </aside>
 
-        {/* Mobile Sidebar */}
         {mobileSidebarOpen && (
           <div className="fixed inset-0 z-40 md:hidden">
             <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setMobileSidebarOpen(false)}></div>
@@ -730,7 +726,6 @@ export default function AdminPortal({ onLogout }) {
           </div>
         )}
 
-        {/* Main Content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
           <div className="max-w-7xl mx-auto p-4 lg:p-6">
             <div className="mb-6 pb-4 border-b border-gray-200">
