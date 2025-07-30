@@ -5,14 +5,6 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
 
-const withNoCacheHeaders = (res) => {
-  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.headers.set('Pragma', 'no-cache');
-  res.headers.set('Expires', '0');
-  res.headers.set('Surrogate-Control', 'no-store');
-  return res;
-};
-
 async function processLogoImage(formData) {
   const logoFile = formData.get('logo');
   let logoPath = null;
@@ -113,36 +105,35 @@ export async function GET() {
     await connectDB();
     const navbarInfo = await NavbarInfo.findOne({});
 
-    const data = navbarInfo || {
-      restaurant: {
-        name: "Tipu Burger & Broast",
-        openingHours: "11:30 am to 3:30 am",
-        logo: "/logo.png"
-      },
-      delivery: {
-        time: "30-45 mins",
-        minimumOrder: "Rs. 500 Only"
-      },
-      socialLinks: [
-        { platform: "menu", icon: "/download.webp", isMenu: true, menuFile: "/tipu-menu-update-feb-25.pdf" },
-        { platform: "whatsapp", icon: "/whatsapp-logo.webp", url: "https://wa.me/923332245706" },
-        { platform: "phone", icon: "/phone.webp", url: "tel:+92111822111" },
-        { platform: "facebook", icon: "/facebook.webp", url: "https://www.facebook.com/tipuburgerbroast" },
-        { platform: "tiktok", icon: "/instagram.png", url: "https://www.tiktok.com/tipuburger" }
-      ]
-    };
+    if (!navbarInfo) {
+      return NextResponse.json({
+        restaurant: {
+          name: "Tipu Burger & Broast",
+          openingHours: "11:30 am to 3:30 am",
+          logo: "/logo.png"
+        },
+        delivery: {
+          time: "30-45 mins",
+          minimumOrder: "Rs. 500 Only"
+        },
+        socialLinks: [
+          { platform: "menu", icon: "/download.webp", isMenu: true, menuFile: "/tipu-menu-update-feb-25.pdf" },
+          { platform: "whatsapp", icon: "/whatsapp-logo.webp", url: "https://wa.me/923332245706" },
+          { platform: "phone", icon: "/phone.webp", url: "tel:+92111822111" },
+          { platform: "facebook", icon: "/facebook.webp", url: "https://www.facebook.com/tipuburgerbroast" },
+          { platform: "tiktok", icon: "/instagram.png", url: "https://www.tiktok.com/tipuburger" }
+        ]
+      }, { status: 200 });
+    }
 
-    const response = NextResponse.json(data, { status: 200 });
-    return withNoCacheHeaders(response);
+    return NextResponse.json(navbarInfo, { status: 200 });
   } catch (error) {
-    const response = NextResponse.json(
+    return NextResponse.json(
       { message: "Failed to fetch navbar information", error: error.message },
       { status: 500 }
     );
-    return withNoCacheHeaders(response);
   }
 }
-
 export async function POST(request) {
   try {
     await connectDB();
@@ -151,11 +142,10 @@ export async function POST(request) {
     const navbarDataString = formData.get('navbarData');
     
     if (!navbarDataString) {
-      const response = NextResponse.json(
+      return NextResponse.json(
         { message: "Missing navbar data" },
         { status: 400 }
       );
-      return withNoCacheHeaders(response);
     }
     
     const navbarData = JSON.parse(navbarDataString);
@@ -163,11 +153,13 @@ export async function POST(request) {
     if (navbarData.socialLinks) {
       navbarData.socialLinks = navbarData.socialLinks.map(link => {
         const cleanedLink = { ...link };
+        
         if (cleanedLink.isMenu) {
           delete cleanedLink.url;
         } else {
           delete cleanedLink.menuFile;
         }
+        
         return cleanedLink;
       });
     }
@@ -178,20 +170,26 @@ export async function POST(request) {
     }
     
     const { iconPaths, indexPaths } = await processSocialIcons(formData);
-    for (let i = 0; i < iconPaths.length; i++) {
-      const index = parseInt(indexPaths[i]);
-      if (index >= 0 && index < navbarData.socialLinks.length) {
-        navbarData.socialLinks[index].icon = iconPaths[i];
+    
+    if (iconPaths.length > 0 && indexPaths.length === iconPaths.length) {
+      for (let i = 0; i < iconPaths.length; i++) {
+        const index = parseInt(indexPaths[i]);
+        if (index >= 0 && index < navbarData.socialLinks.length) {
+          navbarData.socialLinks[index].icon = iconPaths[i];
+        }
       }
     }
     
     const { menuPaths, indexPaths: menuIndexPaths } = await processMenuFiles(formData);
-    for (let i = 0; i < menuPaths.length; i++) {
-      const index = parseInt(menuIndexPaths[i]);
-      if (index >= 0 && index < navbarData.socialLinks.length) {
-        navbarData.socialLinks[index].menuFile = menuPaths[i];
-        navbarData.socialLinks[index].isMenu = true;
-        delete navbarData.socialLinks[index].url;
+    
+    if (menuPaths.length > 0 && menuIndexPaths.length === menuPaths.length) {
+      for (let i = 0; i < menuPaths.length; i++) {
+        const index = parseInt(menuIndexPaths[i]);
+        if (index >= 0 && index < navbarData.socialLinks.length) {
+          navbarData.socialLinks[index].menuFile = menuPaths[i];
+          navbarData.socialLinks[index].isMenu = true;
+          delete navbarData.socialLinks[index].url;
+        }
       }
     }
     
@@ -205,17 +203,18 @@ export async function POST(request) {
           updatedAt: new Date()
         } 
       },
-      { new: true, upsert: true }
+      { 
+        new: true,
+        upsert: true 
+      }
     );
-
-    const response = NextResponse.json(updatedNavbar, { status: 200 });
-    return withNoCacheHeaders(response);
+    
+    return NextResponse.json(updatedNavbar, { status: 200 });
   } catch (error) {
     console.error("Error updating navbar:", error);
-    const response = NextResponse.json(
+    return NextResponse.json(
       { message: "Failed to update navbar information", error: error.message },
       { status: 500 }
     );
-    return withNoCacheHeaders(response);
   }
 }

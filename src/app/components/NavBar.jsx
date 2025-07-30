@@ -59,21 +59,19 @@ export default function Navbar() {
     setIsModalOpen(false);
   };
 
-  // Transform social links to format expected by the UI
   const socialItems = isLoading || !navbarData.socialLinks || navbarData.socialLinks.length === 0
-    ? []  // Empty array if loading or no data
+    ? []
     : navbarData.socialLinks
-        .filter(link => {
-          // Filter out invalid links (missing href)
-          if (link.isMenu) return !!link.menuFile;
-          return !!link.url;
-        })
-        .map(link => ({
-          src: link.icon || "/download.webp",
-          href: link.isMenu ? link.menuFile : link.url,
-          isMenu: link.isMenu,
-          platform: link.platform
-        }));
+      .filter(link => {
+        if (link.isMenu) return !!link.menuFile;
+        return !!link.url;
+      })
+      .map(link => ({
+        src: link.icon || "/download.webp",
+        href: link.isMenu ? link.menuFile : link.url,
+        isMenu: link.isMenu,
+        platform: link.platform
+      }));
 
   return (
     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-16">
@@ -81,10 +79,11 @@ export default function Navbar() {
         <Link href="/">
           <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 overflow-hidden -mt-8 sm:-mt-10 md:-mt-14 rounded-full">
             <img
-              src={navbarData.restaurant.logo || "/logo.png"} 
-              alt="Logo" 
-              className="w-full h-full object-cover" 
+              src={`${navbarData.restaurant.logo || "/logo.png"}?v=${new Date(navbarData.updatedAt).getTime()}`}
+              alt="Logo"
+              className="w-full h-full object-cover"
             />
+
           </div>
         </Link>
       </div>
@@ -109,7 +108,7 @@ export default function Navbar() {
                     {branch?.name || "Select Location"}
                   </span>
                 </div>
-                <span 
+                <span
                   className="underline text-[11px] sm:text-xs cursor-pointer"
                   onClick={() => setIsModalOpen(true)}
                 >
@@ -161,8 +160,7 @@ export default function Navbar() {
                   </a>
                 );
               }
-              
-              // Ensure we have a valid href for Link component
+
               return (
                 <Link
                   key={index}

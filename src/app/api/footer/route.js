@@ -5,20 +5,14 @@ import { writeFile, mkdir, unlink } from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
 
-function jsonWithNoStore(data, status = 200) {
-  const res = NextResponse.json(data, { status });
-  res.headers.set('Cache-Control', 'no-store');
-  return res;
-}
-
 async function processImages(formData) {
   const logoFile = formData.get('logo');
   const sliderImages = formData.getAll('sliderImages');
   const results = { logoPath: null, sliderImagePaths: [] };
-
+  
   const logoDir = path.join(process.cwd(), 'public');
   const sliderDir = path.join(process.cwd(), 'public', 'footer');
-
+  
   try {
     if (!existsSync(sliderDir)) {
       await mkdir(sliderDir, { recursive: true });
@@ -40,7 +34,7 @@ async function processImages(formData) {
         const fileExtension = image.name.split('.').pop();
         const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
         const filePath = path.join(sliderDir, uniqueFilename);
-
+        
         const imageBuffer = Buffer.from(await image.arrayBuffer());
         await writeFile(filePath, imageBuffer);
         results.sliderImagePaths.push(`/footer/${uniqueFilename}`);
@@ -53,10 +47,10 @@ async function processImages(formData) {
 
 async function deleteFileFromDisk(imagePath) {
   if (!imagePath) return;
-
+  
   try {
     const filePath = path.join(process.cwd(), 'public', imagePath.replace(/^\//, ''));
-
+    
     if (existsSync(filePath)) {
       await unlink(filePath);
       console.log(`Deleted file: ${filePath}`);
@@ -77,7 +71,7 @@ export async function GET() {
     const footerInfo = await FooterInfo.findOne({});
 
     if (!footerInfo) {
-      return jsonWithNoStore({
+      return NextResponse.json({
         restaurant: {
           name: "",
           logo: "",
@@ -100,14 +94,14 @@ export async function GET() {
           contact: ""
         },
         sliderImages: []
-      });
+      }, { status: 200 });
     }
 
-    return jsonWithNoStore(footerInfo);
+    return NextResponse.json(footerInfo, { status: 200 });
   } catch (error) {
-    return jsonWithNoStore(
+    return NextResponse.json(
       { message: "Failed to fetch footer information", error: error.message },
-      500
+      { status: 500 }
     );
   }
 }
@@ -115,31 +109,35 @@ export async function GET() {
 export async function POST(request) {
   try {
     await connectDB();
-
+    
     const formData = await request.formData();
     const footerDataString = formData.get('footerData');
-
+    
     if (!footerDataString) {
-      return jsonWithNoStore({ message: "Missing footer data" }, 400);
+      return NextResponse.json(
+        { message: "Missing footer data" },
+        { status: 400 }
+      );
     }
-
+    
     const footerData = JSON.parse(footerDataString);
+    
     const { logoPath, sliderImagePaths } = await processImages(formData);
-
+    
     if (logoPath) {
       footerData.restaurant.logo = logoPath;
     }
-
+    
     if (sliderImagePaths.length > 0) {
       footerData.sliderImages = [
         ...(footerData.sliderImages || []),
         ...sliderImagePaths
       ];
     }
-
+    
     const updatedFooter = await FooterInfo.findOneAndUpdate(
-      {},
-      {
+      {}, 
+      { 
         $set: {
           restaurant: footerData.restaurant,
           contact: footerData.contact,
@@ -147,47 +145,51 @@ export async function POST(request) {
           developer: footerData.developer,
           sliderImages: footerData.sliderImages,
           updatedAt: new Date()
-        }
+        } 
       },
-      {
+      { 
         new: true,
-        upsert: true
+        upsert: true 
       }
     );
-
-    return jsonWithNoStore(updatedFooter);
+    
+    return NextResponse.json(updatedFooter, { status: 200 });
   } catch (error) {
     console.error("Error updating footer:", error);
-    return jsonWithNoStore(
+    return NextResponse.json(
       { message: "Failed to update footer information", error: error.message },
-      500
+      { status: 500 }
     );
   }
 }
 
+
 export async function DELETE(request) {
   try {
     await connectDB();
-
+    
     const { imagePath } = await request.json();
     if (!imagePath) {
-      return jsonWithNoStore({ message: "Image path is required" }, 400);
+      return NextResponse.json(
+        { message: "Image path is required" },
+        { status: 400 }
+      );
     }
-
+    
     await deleteFileFromDisk(imagePath);
-
+    
     const updatedFooter = await FooterInfo.findOneAndUpdate(
-      {},
+      {}, 
       { $pull: { sliderImages: imagePath } },
       { new: true }
     );
-
-    return jsonWithNoStore(updatedFooter);
+    
+    return NextResponse.json(updatedFooter, { status: 200 });
   } catch (error) {
     console.error("Error deleting image:", error);
-    return jsonWithNoStore(
+    return NextResponse.json(
       { message: "Failed to delete image", error: error.message },
-      500
+      { status: 500 }
     );
   }
 }
