@@ -13,40 +13,35 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [logoUrl, setLogoUrl] = useState("/logo.png");
-  const [isClient, setIsClient] = useState(false);
+  const [logoData, setLogoData] = useState({
+    logo: "/logo.png",
+    updatedAt: new Date()
+  });
+  const [isLogoLoading, setIsLogoLoading] = useState(true);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    const fetchLogo = async () => {
+    async function getLogoData() {
+      setIsLogoLoading(true);
       try {
         const res = await fetch('/api/logo', { cache: 'no-store' });
-        if (!res.ok) {
-          throw new Error(`Failed to fetch logo: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        
-        const logoPath = data?.logo || '/logo.png';
-        
-        setLogoUrl(logoPath);
-        
-        if (isClient) {
-          const updatedAt = data?.updatedAt || new Date().toISOString();
-          const timestamp = new Date(updatedAt).getTime();
-          setLogoUrl(`${logoPath}?v=${timestamp}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLogoData(data);
         }
       } catch (err) {
         console.error("Failed to fetch logo:", err);
-        setLogoUrl(isClient ? `/logo.png?v=${Date.now()}` : '/logo.png'); 
+      } finally {
+        setIsLogoLoading(false);
       }
     };
 
-    fetchLogo();
-  }, [isClient]);
+    getLogoData();
+  }, []);
+
+  // Get timestamp for logo cache busting
+  const getLogoTimestamp = () => {
+    return logoData?.updatedAt ? new Date(logoData.updatedAt).getTime() : Date.now();
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -62,14 +57,13 @@ export default function Login() {
     <div className="min-h-screen flex items-center text-black justify-center bg-gradient-to-br from-red-100 via-white to-red-100 p-4">
       <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-md transform transition-all hover:shadow-xl">
         <div className="flex justify-center mb-6">
-          {logoUrl && (
+          {!isLogoLoading && (
             <Image
-              src={logoUrl}
+              src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`}
               alt="Restaurant Logo"
               width={120}
               height={120}
               className="object-contain"
-              priority
             />
           )}
         </div>

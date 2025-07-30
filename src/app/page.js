@@ -18,7 +18,7 @@ export default function Home() {
 
   const handleWhatsAppClick = () => {
     window.open(
-      "https://wa.me/923463332682",
+      "https://wa.me/923122754064",
       "_blank"
     );
   };
