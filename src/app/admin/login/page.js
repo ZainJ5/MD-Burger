@@ -13,27 +13,40 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [logoUrl, setLogoUrl] = useState(null);
+  const [logoUrl, setLogoUrl] = useState("/logo.png");
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const res = await fetch('/api/footer', { cache: 'no-store' });
+        const res = await fetch('/api/logo', { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch logo: ${res.status}`);
+        }
+        
         const data = await res.json();
-
-        const logoPath = data?.restaurant?.logo || '/logo.png';
-        const updatedAt = data?.updatedAt || new Date().toISOString();
-
-        const versionedLogo = `${logoPath}?v=${new Date(updatedAt).getTime()}`;
-        setLogoUrl(versionedLogo);
+        
+        const logoPath = data?.logo || '/logo.png';
+        
+        setLogoUrl(logoPath);
+        
+        if (isClient) {
+          const updatedAt = data?.updatedAt || new Date().toISOString();
+          const timestamp = new Date(updatedAt).getTime();
+          setLogoUrl(`${logoPath}?v=${timestamp}`);
+        }
       } catch (err) {
         console.error("Failed to fetch logo:", err);
-        setLogoUrl('/logo.png?v=' + Date.now()); 
+        setLogoUrl(isClient ? `/logo.png?v=${Date.now()}` : '/logo.png'); 
       }
     };
 
     fetchLogo();
-  }, []);
+  }, [isClient]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -56,6 +69,7 @@ export default function Login() {
               width={120}
               height={120}
               className="object-contain"
+              priority
             />
           )}
         </div>

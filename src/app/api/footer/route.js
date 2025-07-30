@@ -6,11 +6,9 @@ import path from 'path';
 import { existsSync } from 'fs';
 
 async function processImages(formData) {
-  const logoFile = formData.get('logo');
   const sliderImages = formData.getAll('sliderImages');
-  const results = { logoPath: null, sliderImagePaths: [] };
+  const results = { sliderImagePaths: [] };
   
-  const logoDir = path.join(process.cwd(), 'public');
   const sliderDir = path.join(process.cwd(), 'public', 'footer');
   
   try {
@@ -19,13 +17,6 @@ async function processImages(formData) {
     }
   } catch (error) {
     throw new Error("Error creating directories: " + error.message);
-  }
-
-  if (logoFile && logoFile.size > 0) {
-    const logoBuffer = Buffer.from(await logoFile.arrayBuffer());
-    const logoPath = path.join(logoDir, 'logo.png');
-    await writeFile(logoPath, logoBuffer);
-    results.logoPath = '/logo.png';
   }
 
   if (sliderImages && sliderImages.length > 0) {
@@ -74,7 +65,6 @@ export async function GET() {
       return NextResponse.json({
         restaurant: {
           name: "",
-          logo: "",
           address: "",
           description: "",
           establishedYear: new Date().getFullYear(),
@@ -93,7 +83,8 @@ export async function GET() {
           name: "",
           contact: ""
         },
-        sliderImages: []
+        sliderImages: [],
+        updatedAt: new Date()
       }, { status: 200 });
     }
 
@@ -122,11 +113,7 @@ export async function POST(request) {
     
     const footerData = JSON.parse(footerDataString);
     
-    const { logoPath, sliderImagePaths } = await processImages(formData);
-    
-    if (logoPath) {
-      footerData.restaurant.logo = logoPath;
-    }
+    const { sliderImagePaths } = await processImages(formData);
     
     if (sliderImagePaths.length > 0) {
       footerData.sliderImages = [
@@ -162,7 +149,6 @@ export async function POST(request) {
     );
   }
 }
-
 
 export async function DELETE(request) {
   try {

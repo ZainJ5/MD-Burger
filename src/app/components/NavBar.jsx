@@ -10,16 +10,21 @@ export default function Navbar() {
   const [navbarData, setNavbarData] = useState({
     restaurant: {
       name: "Tipu Burger & Broast",
-      openingHours: "11:30 am to 3:30 am",
-      logo: "/logo.png"
+      openingHours: "11:30 am to 3:30 am"
     },
     delivery: {
       time: "30-45 mins",
       minimumOrder: "Rs. 500 Only"
     },
-    socialLinks: []
+    socialLinks: [],
+    updatedAt: new Date()
+  });
+  const [logoData, setLogoData] = useState({
+    logo: "/logo.png",
+    updatedAt: new Date()
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isLogoLoading, setIsLogoLoading] = useState(true);
 
   const { branch, setBranch } = useBranchStore();
 
@@ -54,9 +59,37 @@ export default function Navbar() {
     getNavbarData();
   }, []);
 
+  useEffect(() => {
+    async function getLogoData() {
+      setIsLogoLoading(true);
+      try {
+        const res = await fetch("/api/logo");
+        if (res.ok) {
+          const data = await res.json();
+          setLogoData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching logo data:", error);
+      } finally {
+        setIsLogoLoading(false);
+      }
+    }
+    getLogoData();
+  }, []);
+
   const handleLocationChange = (selectedBranch) => {
     setBranch(selectedBranch);
     setIsModalOpen(false);
+  };
+
+  // Get timestamp for logo cache busting
+  const getLogoTimestamp = () => {
+    return logoData?.updatedAt ? new Date(logoData.updatedAt).getTime() : Date.now();
+  };
+
+  // Get timestamp for navbar items cache busting
+  const getNavbarTimestamp = () => {
+    return navbarData?.updatedAt ? new Date(navbarData.updatedAt).getTime() : Date.now();
   };
 
   const socialItems = isLoading || !navbarData.socialLinks || navbarData.socialLinks.length === 0
@@ -78,12 +111,13 @@ export default function Navbar() {
       <div className="flex justify-center sm:justify-start">
         <Link href="/">
           <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 overflow-hidden -mt-8 sm:-mt-10 md:-mt-14 rounded-full">
-            <img
-              src={`${navbarData.restaurant.logo || "/logo.png"}?v=${new Date(navbarData.updatedAt).getTime()}`}
-              alt="Logo"
-              className="w-full h-full object-cover"
-            />
-
+            {!isLogoLoading && (
+              <img
+                src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`}
+                alt="Logo"
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
         </Link>
       </div>
@@ -148,16 +182,15 @@ export default function Navbar() {
                 return (
                   <a
                     key={index}
-                    href={item.href}
+                    href={`${item.href}?v=${getNavbarTimestamp()}`}
                     download={`${item.platform || 'menu'}.pdf`}
                     className="rounded-[9px] relative hover:opacity-90 transition-opacity w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center"
                   >
                     <img
-                      src={`${item.src}?v=${new Date(navbarData.updatedAt).getTime()}`}
+                      src={`${item.src}?v=${getNavbarTimestamp()}`}
                       alt="Download Menu"
                       className="w-full h-full object-contain rounded-[7px]"
                     />
-
                   </a>
                 );
               }
@@ -171,11 +204,10 @@ export default function Navbar() {
                   className="rounded relative hover:opacity-90 transition-opacity w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center"
                 >
                   <img
-                    src={`${item.src}?v=${new Date(navbarData.updatedAt).getTime()}`}
+                    src={`${item.src}?v=${getNavbarTimestamp()}`}
                     alt={`${item.platform} icon`}
                     className="w-full h-full object-contain"
                   />
-
                 </Link>
               );
             })}

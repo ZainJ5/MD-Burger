@@ -8,7 +8,6 @@ export default function FooterEditor() {
   const [footerContent, setFooterContent] = useState({
     restaurant: {
       name: "",
-      logo: "",
       address: "",
       description: "",
       establishedYear: new Date().getFullYear(),
@@ -27,15 +26,14 @@ export default function FooterEditor() {
       name: "",
       contact: ""
     },
-    sliderImages: []
+    sliderImages: [],
+    updatedAt: new Date()
   });
   
   const [activeSection, setActiveSection] = useState('restaurant');
-  const [logoPreview, setLogoPreview] = useState("");
   const [sliderImageFiles, setSliderImageFiles] = useState([]);
   const [newSliderPreviews, setNewSliderPreviews] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [logoFile, setLogoFile] = useState(null);
   const [newWhatsappNumber, setNewWhatsappNumber] = useState("");
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
@@ -48,10 +46,6 @@ export default function FooterEditor() {
         if (response.ok) {
           const data = await response.json();
           setFooterContent(data);
-          
-          if (data.restaurant?.logo) {
-            setLogoPreview(data.restaurant.logo);
-          }
         }
       } catch (error) {
         console.error("Error fetching footer data:", error);
@@ -79,18 +73,6 @@ export default function FooterEditor() {
         [field]: value
       }
     }));
-  };
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoFile(file);
-      const reader = new FileReader();
-      reader.onload = () => {
-        setLogoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleSliderImageChange = (e) => {
@@ -134,14 +116,8 @@ export default function FooterEditor() {
       });
 
       if (response.ok) {
-        setFooterContent(prev => {
-          const updatedImages = [...prev.sliderImages];
-          updatedImages.splice(index, 1);
-          return {
-            ...prev,
-            sliderImages: updatedImages
-          };
-        });
+        const updatedData = await response.json();
+        setFooterContent(updatedData);
         toast.success("Image deleted successfully", {
           position: "top-right",
           autoClose: 3000,
@@ -196,10 +172,6 @@ export default function FooterEditor() {
       
       formData.append('footerData', JSON.stringify(footerContent));
       
-      if (logoFile) {
-        formData.append('logo', logoFile);
-      }
-      
       sliderImageFiles.forEach(file => {
         formData.append('sliderImages', file);
       });
@@ -214,8 +186,6 @@ export default function FooterEditor() {
         
         setFooterContent(updatedData);
         
-        // Reset file states
-        setLogoFile(null);
         setSliderImageFiles([]);
         setNewSliderPreviews([]);
         
@@ -258,7 +228,6 @@ export default function FooterEditor() {
 
   return (
     <div className="p-6 space-y-8">
-      {/* Add ToastContainer for react-toastify */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -344,27 +313,6 @@ export default function FooterEditor() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   required
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Restaurant Logo</label>
-                <div className="flex items-center space-x-4">
-                  {logoPreview && (
-                    <div className="relative h-20 w-20 border rounded-md overflow-hidden">
-                      <img 
-                        src={logoPreview} 
-                        alt="Restaurant logo" 
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                      />
-                    </div>
-                  )}
-                  <input 
-                    type="file" 
-                    onChange={handleLogoChange}
-                    accept="image/png,image/jpeg,image/gif"
-                    className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-                  />
-                </div>
               </div>
               
               <div>
@@ -584,7 +532,7 @@ export default function FooterEditor() {
                     {footerContent.sliderImages.map((imagePath, index) => (
                       <div key={`existing-${index}`} className="relative h-32 border rounded-md overflow-hidden group">
                         <img 
-                          src={imagePath} 
+                          src={`${imagePath}?v=${new Date(footerContent.updatedAt).getTime()}`} 
                           alt={`Footer slider image ${index + 1}`}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />

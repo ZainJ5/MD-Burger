@@ -5,30 +5,6 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
 
-async function processLogoImage(formData) {
-  const logoFile = formData.get('logo');
-  let logoPath = null;
-  
-  if (logoFile && logoFile.size > 0) {
-    const logoDir = path.join(process.cwd(), 'public');
-    
-    try {
-      if (!existsSync(logoDir)) {
-        await mkdir(logoDir, { recursive: true });
-      }
-    } catch (error) {
-      throw new Error("Error creating directory: " + error.message);
-    }
-
-    const logoBuffer = Buffer.from(await logoFile.arrayBuffer());
-    const logoFilePath = path.join(logoDir, 'logo.png');
-    await writeFile(logoFilePath, logoBuffer);
-    logoPath = '/logo.png';
-  }
-
-  return logoPath;
-}
-
 async function processSocialIcons(formData) {
   const icons = formData.getAll('socialIcons');
   const iconIndexes = formData.getAll('socialIconIndexes');
@@ -110,7 +86,7 @@ export async function GET() {
         restaurant: {
           name: "Tipu Burger & Broast",
           openingHours: "11:30 am to 3:30 am",
-          logo: "/logo.png"
+          // logo removed from here
         },
         delivery: {
           time: "30-45 mins",
@@ -134,6 +110,7 @@ export async function GET() {
     );
   }
 }
+
 export async function POST(request) {
   try {
     await connectDB();
@@ -164,10 +141,7 @@ export async function POST(request) {
       });
     }
     
-    const logoPath = await processLogoImage(formData);
-    if (logoPath) {
-      navbarData.restaurant.logo = logoPath;
-    }
+    // Logo handling removed
     
     const { iconPaths, indexPaths } = await processSocialIcons(formData);
     

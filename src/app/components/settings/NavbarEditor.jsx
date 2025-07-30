@@ -8,8 +8,7 @@ export default function NavbarEditor() {
   const [navbarData, setNavbarData] = useState({
     restaurant: {
       name: "Tipu Burger & Broast",
-      openingHours: "11:30 am to 3:30 am",
-      logo: "/logo.png"
+      openingHours: "11:30 am to 3:30 am"
     },
     delivery: {
       time: "30-45 mins",
@@ -21,11 +20,10 @@ export default function NavbarEditor() {
       { platform: "phone", icon: "/phone.webp", url: "tel:+92111822111" },
       { platform: "facebook", icon: "/facebook.webp", url: "https://www.facebook.com/tipuburgerbroast" },
       { platform: "tiktok", icon: "/instagram.png", url: "https://www.tiktok.com/tipuburger" }
-    ]
+    ],
+    updatedAt: new Date()
   });
 
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState("");
   const [socialIconFiles, setSocialIconFiles] = useState({});
   const [socialIconPreviews, setSocialIconPreviews] = useState({});
   const [menuFiles, setMenuFiles] = useState({});
@@ -58,10 +56,6 @@ export default function NavbarEditor() {
           }
 
           setNavbarData(data);
-
-          if (data.restaurant?.logo) {
-            setLogoPreview(data.restaurant.logo);
-          }
         }
       } catch (error) {
         console.error("Error fetching navbar data:", error);
@@ -100,18 +94,6 @@ export default function NavbarEditor() {
         socialLinks: updatedLinks
       };
     });
-  };
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoFile(file);
-      const reader = new FileReader();
-      reader.onload = () => {
-        setLogoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleSocialIconChange = (e, index) => {
@@ -248,10 +230,6 @@ export default function NavbarEditor() {
 
       formData.append('navbarData', JSON.stringify(cleanedData));
 
-      if (logoFile) {
-        formData.append('logo', logoFile);
-      }
-
       Object.entries(socialIconFiles).forEach(([index, file]) => {
         formData.append('socialIcons', file);
         formData.append('socialIconIndexes', index);
@@ -285,8 +263,6 @@ export default function NavbarEditor() {
         }
 
         setNavbarData(updatedData);
-
-        setLogoFile(null);
         setSocialIconFiles({});
         setSocialIconPreviews({});
         setMenuFiles({});
@@ -316,6 +292,11 @@ export default function NavbarEditor() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Get timestamp for cache busting
+  const getTimestamp = () => {
+    return navbarData?.updatedAt ? new Date(navbarData.updatedAt).getTime() : Date.now();
   };
 
   if (isLoadingData) {
@@ -379,28 +360,6 @@ export default function NavbarEditor() {
                 onChange={(e) => handleInputChange('restaurant', 'openingHours', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Restaurant Logo</label>
-            <div className="flex items-center space-x-4">
-              {(logoPreview || navbarData.restaurant.logo) && (
-                <div className="relative h-20 w-20 border rounded-full overflow-hidden">
-                  <img
-                    src={logoPreview || navbarData.restaurant.logo}
-                    alt="Restaurant logo"
-                    className="w-full h-full object-cover"
-                  />
-
-                </div>
-              )}
-              <input
-                type="file"
-                onChange={handleLogoChange}
-                accept="image/png,image/jpeg,image/gif"
-                className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
               />
             </div>
           </div>
@@ -518,7 +477,7 @@ export default function NavbarEditor() {
                 <div className="flex items-center text-sm text-gray-600 mt-1 ml-2">
                   <span>Current file: </span>
                   <a
-                    href={link.menuFile}
+                    href={`${link.menuFile}?v=${getTimestamp()}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ml-1 text-blue-600 hover:underline truncate max-w-xs"
@@ -534,11 +493,10 @@ export default function NavbarEditor() {
                   {(socialIconPreviews[index] || link.icon) && (
                     <div className="relative h-8 w-8 border rounded overflow-hidden">
                       <img
-                        src={socialIconPreviews[index] || link.icon}
+                        src={socialIconPreviews[index] || `${link.icon}?v=${getTimestamp()}`}
                         alt={`${link.platform} icon`}
                         className="w-full h-full object-contain"
                       />
-
                     </div>
                   )}
                   <input

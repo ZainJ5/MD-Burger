@@ -10,7 +10,6 @@ export default function Footer() {
   const [footerData, setFooterData] = useState({
     restaurant: {
       name: "Tipu Burger & Broast",
-      logo: "/logo.png",
       address: "Clifton Center، Shop No 1, Clifton Shopping Arcade، Bank Road, Block 5 Clifton, Karachi, 75600",
       description: "The best food in Town! Established in 1993. At the time of opening we started with the bun kabab's but now we have opened the complete FAST FOOD and BAR-B-Q. Just all pure are being used here.",
       establishedYear: 1993,
@@ -29,9 +28,31 @@ export default function Footer() {
       name: "ZABS Creatives",
       contact: "923142300331"
     },
-    sliderImages: []
+    sliderImages: [],
+    updatedAt: new Date()
   });
+  
+  const [logoData, setLogoData] = useState({
+    logo: "/logo.png",
+    updatedAt: new Date()
+  });
+  
   const [isLoading, setIsLoading] = useState(true);
+  const [isLogoLoading, setIsLogoLoading] = useState(true);
+  const [timestamp, setTimestamp] = useState(null);
+  const [isClient, setIsClient] = useState(false);
+
+  // Set isClient to true once component mounts on client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Generate timestamp only on client side after initial hydration
+  useEffect(() => {
+    if (isClient) {
+      setTimestamp(Date.now().toString());
+    }
+  }, [isClient, footerData.updatedAt, logoData.updatedAt]);
 
   useEffect(() => {
     const fetchFooterData = async () => {
@@ -52,17 +73,44 @@ export default function Footer() {
     
     fetchFooterData();
   }, []);
+  
+  useEffect(() => {
+    const fetchLogoData = async () => {
+      try {
+        const response = await fetch('/api/logo');
+        if (response.ok) {
+          const data = await response.json();
+          setLogoData(data);
+        } else {
+          console.error("Failed to fetch logo data");
+        }
+      } catch (error) {
+        console.error("Error fetching logo data:", error);
+      } finally {
+        setIsLogoLoading(false);
+      }
+    };
+    
+    fetchLogoData();
+  }, []);
+
+  // Only add cache-busting parameters on client side after hydration
+  const getImageUrl = (path) => {
+    return isClient && timestamp ? `${path}?v=${timestamp}` : path;
+  };
 
   return (
     <footer className="bg-white border-t">
       <div className="max-w-7xl mx-auto px-4 pb-12 sm:px-6 lg:px-8 relative">
         <Link href="/">
-          <div className="relative rounded-full border-4 border-yellow-400 w-32 h-32  bg-white left-1/2 top-[0px] transform -translate-x-1/2 -translate-y-1/2 z-10 overflow-hidden">
-            <img 
-              src={`${footerData.restaurant.logo || "/logo.png"}?v=${new Date(footerData.updatedAt).getTime()}`} 
-              alt={footerData.restaurant.name} 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-            />
+          <div className="relative rounded-full border-4 border-yellow-400 w-32 h-32 bg-white left-1/2 top-[0px] transform -translate-x-1/2 -translate-y-1/2 z-10 overflow-hidden">
+            {!isLogoLoading && (
+              <img 
+                src={getImageUrl(logoData.logo)}
+                alt={footerData.restaurant.name} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            )}
           </div>
         </Link>
 
@@ -155,7 +203,11 @@ export default function Footer() {
             footerData.sliderImages.map((image, index) => (
               <SwiperSlide key={`api-${index}`}>
                 <div className="relative w-full h-58 object-cover">
-                  <img src={`${image}?v=${new Date(footerData.updatedAt).getTime()}`} alt={`Image ${index+1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img 
+                    src={getImageUrl(image)}
+                    alt={`Image ${index+1}`} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
                 </div>
               </SwiperSlide>
             ))
@@ -165,7 +217,11 @@ export default function Footer() {
               .map((num) => (
                 <SwiperSlide key={`static-${num}`}>
                   <div className="relative w-full h-58 object-cover">
-                    <img src={`/${num}.webp?v=${new Date(footerData.updatedAt).getTime()}`} alt={`Image ${num}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img 
+                      src={getImageUrl(`/${num}.webp`)} 
+                      alt={`Image ${num}`} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
                   </div>
                 </SwiperSlide>
               ))

@@ -53,6 +53,23 @@ export default function AdminPortal({ onLogout }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState("");
+  // Add logo-related states
+  const [logoData, setLogoData] = useState({ logo: "/logo.png", updatedAt: new Date() });
+  const [isLogoLoading, setIsLogoLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+  const [timestamp, setTimestamp] = useState(null);
+
+  // Set isClient to true after initial render
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Set timestamp for cache busting only on client side
+  useEffect(() => {
+    if (isClient) {
+      setTimestamp(Date.now().toString());
+    }
+  }, [isClient, logoData.updatedAt]);
 
   useEffect(() => {
     fetchBranches();
@@ -61,6 +78,7 @@ export default function AdminPortal({ onLogout }) {
     fetchFoodItems();
     fetchSiteStatus();
     fetchDeliveryAreas();
+    fetchLogo();
 
     setCurrentDateTime(new Date().toLocaleString('en-US', {
       weekday: 'long',
@@ -89,6 +107,26 @@ export default function AdminPortal({ onLogout }) {
       clearInterval(timer);
     };
   }, []);
+
+  const fetchLogo = async () => {
+    setIsLogoLoading(true);
+    try {
+      const response = await fetch('/api/logo');
+      if (response.ok) {
+        const data = await response.json();
+        setLogoData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching logo:", error);
+    } finally {
+      setIsLogoLoading(false);
+    }
+  };
+
+  // Helper function to get image URL with cache busting
+  const getImageUrl = (path) => {
+    return isClient && timestamp ? `${path}?v=${timestamp}` : path;
+  };
 
   const handleLogout = () => {
     if (onLogout) {
@@ -501,14 +539,15 @@ export default function AdminPortal({ onLogout }) {
               </svg>
             </button>
             <div className="flex items-center">
-              <img
-                src="/logo.png"
-                alt="Restaurant Logo"
-                width="40"
-                height="40"
-                className="object-contain"
-              />
-
+              {!isLogoLoading && (
+                <Image
+                  src={getImageUrl(logoData.logo)}
+                  alt="Restaurant Logo"
+                  width={40}
+                  height={40}
+                  className="object-contain"
+                />
+              )}
               <h1 className="ml-2 text-xl font-bold text-red-700 hidden sm:block">Restaurant Management</h1>
             </div>
           </div>
@@ -648,14 +687,15 @@ export default function AdminPortal({ onLogout }) {
 
               <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
                 <div className="flex-shrink-0 flex items-center px-4">
-                  <img
-                    src="/logo.png"
-                    alt="Restaurant Logo"
-                    width="40"
-                    height="40"
-                    className="object-contain"
-                  />
-
+                  {!isLogoLoading && (
+                    <Image
+                      src={getImageUrl(logoData.logo)}
+                      alt="Restaurant Logo"
+                      width={40}
+                      height={40}
+                      className="object-contain"
+                    />
+                  )}
                   <h2 className="ml-2 text-xl font-bold text-white">Restaurant</h2>
                 </div>
                 <div className="mt-5 px-4">

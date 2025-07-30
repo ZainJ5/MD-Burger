@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import HeroEditor from "./settings/HeroEditor";
 import FooterEditor from "./settings/FooterEditor";
 import NavbarEditor from "./settings/NavbarEditor";
+import LogoEditor from "./settings/LogoEditor";
 
 export default function SettingsPopup({ isOpen, onClose }) {
   const popupRef = useRef(null);
@@ -40,7 +41,8 @@ export default function SettingsPopup({ isOpen, onClose }) {
   const contentSections = [
     { id: "hero", label: "Hero Section", icon: "layout" },
     { id: "navbar", label: "NavBar Details", icon: "menu" },
-    { id: "footer", label: "Footer", icon: "menu" }
+    { id: "footer", label: "Footer", icon: "menu" },
+    { id: "logo", label: "Restaurant Logo", icon: "image" }
   ];
 
   const renderContentEditor = () => {
@@ -51,6 +53,8 @@ export default function SettingsPopup({ isOpen, onClose }) {
         return <NavbarEditor />;
       case "footer":
         return <FooterEditor />;
+      case "logo":
+        return <LogoEditor />;
       default:
         return <div className="p-8 text-center text-gray-500 font-medium">Select a section to edit</div>;
     }
@@ -140,6 +144,12 @@ function getIcon(name) {
       return (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+      );
+    case "image":
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       );
     default:

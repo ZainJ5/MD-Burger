@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 const FooterInfoSchema = new mongoose.Schema({
   restaurant: {
     name: { type: String, required: true },
-    logo: { type: String },
     address: { type: String, required: true },
     description: { type: String, required: true },
     establishedYear: { type: Number, default: 1993 },
