@@ -6,8 +6,8 @@ import 'react-toastify/dist/ReactToastify.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Tipu Burger and Broast',
-  description: 'Best Food in Town Since 1993',
+  title: 'King Ice Restaurant - Landhi Branch',
+  description: 'King Ice offers an exclusive range of Fast Foot | BBQ and Ice Cream at Korangi and Landi Town.',
 }
 
 export default function RootLayout({ children }) {
