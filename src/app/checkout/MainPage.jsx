@@ -33,6 +33,12 @@ export default function CheckoutPage() {
 
   const [paymentType, setPaymentType] = useState("cod");
   const [onlineOption, setOnlineOption] = useState(null);
+  
+  const [logoData, setLogoData] = useState({
+    logo: "/logo.png",
+    updatedAt: new Date()
+  });
+  const [isLogoLoading, setIsLogoLoading] = useState(true);
 
   const { orderType } = useOrderTypeStore();
   const { branch } = useBranchStore();
@@ -66,6 +72,30 @@ export default function CheckoutPage() {
     branch: "Main Branch",
     instructions:
       "Transfer the payment to the bank account and upload the transaction receipt.",
+  };
+
+  useEffect(() => {
+    async function fetchLogoData() {
+      setIsLogoLoading(true);
+      try {
+        const res = await fetch("/api/logo");
+        if (res.ok) {
+          const data = await res.json();
+          setLogoData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching logo data:", error);
+      } finally {
+        setIsLogoLoading(false);
+      }
+    }
+    
+    fetchLogoData();
+  }, []);
+
+  // Get timestamp for logo cache busting
+  const getLogoTimestamp = () => {
+    return logoData?.updatedAt ? new Date(logoData.updatedAt).getTime() : Date.now();
   };
 
   useEffect(() => {
@@ -337,7 +367,13 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-center mb-8">
-            <img src="/logo.png" alt="Logo" className="h-24 sm:h-32" />
+            {!isLogoLoading && (
+              <img 
+                src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`} 
+                alt="Logo" 
+                className="h-24 sm:h-32" 
+              />
+            )}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
             <div className="lg:col-span-2 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
@@ -358,7 +394,6 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <div className="space-y-4">
-                {/* Common fields for both order types */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div className="sm:col-span-1">
                     <label className="block text-sm text-gray-700 mb-1">Title</label>
@@ -433,7 +468,6 @@ export default function CheckoutPage() {
                   )}
                 </div>
 
-                {/* Delivery specific fields */}
                 {orderType === "delivery" && (
                   <>
                     <div>
@@ -499,7 +533,6 @@ export default function CheckoutPage() {
                   </>
                 )}
 
-                {/* Pickup specific fields */}
                 {orderType === "pickup" && (
                   <div>
                     <label className="block text-sm text-gray-700 mb-1">
@@ -515,7 +548,6 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {/* Common fields continued */}
                 <div>
                   <label className="block text-sm text-gray-700 mb-1">
                     Payment Instructions

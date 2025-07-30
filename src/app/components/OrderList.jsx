@@ -169,7 +169,7 @@ export default function OrderList() {
         data.orders.forEach((order, index) => {
           const idVal = String(extractValue(order._id));
           const globalIndex = (page - 1) * ordersPerPage + index;
-          mapping[idVal] = "tipu-" + (globalIndex + 1).toString().padStart(3, "0");
+          mapping[idVal] = "king-" + (globalIndex + 1).toString().padStart(3, "0");
         });
         
         setOrders(data.orders);
@@ -636,7 +636,7 @@ export default function OrderList() {
           ) : (
             orders.map((order, index) => {
               const idVal = String(extractValue(order._id));
-              const orderNumber = orderNumbers[idVal] || "tipu-000";
+              const orderNumber = orderNumbers[idVal] || "king-000";
               const status = order.isCompleted ? "Completed" : "Pending";
               const srNo = ((currentPage - 1) * ordersPerPage + index + 1)
                 .toString()
