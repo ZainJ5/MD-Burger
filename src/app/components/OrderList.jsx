@@ -107,6 +107,12 @@ export default function OrderList() {
   const [pageCache, setPageCache] = useState({});
   const [cacheKey, setCacheKey] = useState("");
 
+  // State for receipt image modal
+  const [receiptModal, setReceiptModal] = useState({
+    isOpen: false,
+    imageUrl: ""
+  });
+
   const generateCacheKey = useCallback(() => {
     return `${dateFilter}-${customDate || 'none'}-${typeFilter}`;
   }, [dateFilter, customDate, typeFilter]);
@@ -356,6 +362,20 @@ export default function OrderList() {
   }, [fetchOrderDetails]);
 
   const closeModal = useCallback(() => setSelectedOrder(null), []);
+
+  const openReceiptModal = useCallback((imageUrl) => {
+    setReceiptModal({
+      isOpen: true,
+      imageUrl
+    });
+  }, []);
+
+  const closeReceiptModal = useCallback(() => {
+    setReceiptModal({
+      isOpen: false,
+      imageUrl: ""
+    });
+  }, []);
 
   const paginationPages = useMemo(() => {
     const delta = 2;
@@ -799,8 +819,31 @@ export default function OrderList() {
                     </p>
                   )}
                   <p>
-                    <strong>Payment Method:</strong> {selectedOrder.paymentMethod}
+                    <strong>Payment Method:</strong> {selectedOrder.paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"}
                   </p>
+                  {/* Display receipt information for online payments */}
+                  {selectedOrder.paymentMethod === "online" && (
+                    <>
+                      {selectedOrder.bankName && (
+                        <p>
+                          <strong>Bank Name:</strong> {selectedOrder.bankName}
+                        </p>
+                      )}
+                      {selectedOrder.receiptImageUrl && (
+                        <div className="mt-3">
+                          <p><strong>Receipt:</strong></p>
+                          <div className="mt-1">
+                            <img 
+                              src={selectedOrder.receiptImageUrl} 
+                              alt="Payment Receipt" 
+                              className="max-w-full h-auto max-h-60 border rounded cursor-pointer hover:opacity-90"
+                              onClick={() => openReceiptModal(selectedOrder.receiptImageUrl)}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                   {selectedOrder.paymentInstructions && (
                     <p>
                       <strong>Payment Instructions:</strong> {selectedOrder.paymentInstructions}
@@ -893,6 +936,27 @@ export default function OrderList() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {receiptModal.isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
+          <div className="relative max-w-3xl w-full mx-4">
+            <button
+              onClick={closeReceiptModal}
+              className="absolute top-2 right-2 bg-white rounded-full p-1 text-gray-800 hover:text-gray-600 focus:outline-none"
+              aria-label="Close receipt view"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img 
+              src={receiptModal.imageUrl} 
+              alt="Payment Receipt" 
+              className="max-w-full max-h-[85vh] mx-auto object-contain"
+            />
           </div>
         </div>
       )}

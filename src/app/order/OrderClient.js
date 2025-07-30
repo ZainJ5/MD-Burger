@@ -10,6 +10,12 @@ function OrderContent({ searchParams }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [orderCount, setOrderCount] = useState(0);
+  const [logoData, setLogoData] = useState({
+    logo: "/logo.png",
+    updatedAt: new Date()
+  });
+  const [isLogoLoading, setIsLogoLoading] = useState(true);
+
   const fetchOrderCount = async () => {
     try {
       const res = await fetch('/api/orders');
@@ -23,9 +29,29 @@ function OrderContent({ searchParams }) {
     }
   };
   
+  // Get timestamp for logo cache busting
+  const getLogoTimestamp = () => {
+    return logoData?.updatedAt ? new Date(logoData.updatedAt).getTime() : Date.now();
+  };
+
+  const fetchLogoData = async () => {
+    setIsLogoLoading(true);
+    try {
+      const res = await fetch('/api/logo', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setLogoData(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch logo:", err);
+    } finally {
+      setIsLogoLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchOrderCount(); 
+    fetchLogoData();
     const orderId = searchParams?.id;
 
     if (orderId) {
@@ -125,25 +151,19 @@ function OrderContent({ searchParams }) {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Logo" className="h-12 w-12 rounded-full" />
+            {!isLogoLoading && (
+              <img 
+                src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`}
+                alt="Logo" 
+                className="h-12 w-12 rounded-full" 
+              />
+            )}
             <div className="ml-3">
               <h1 className="font-bold text-lg text-black">Tipu Burger and Broast</h1>
               <p className="text-sm text-green-600">Open</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            {/* <a href="tel:+923462838244" className="flex items-center text-sm text-black">
-              <span className="text-red-600 mr-1">📞</span>
-              +923462838244
-            </a>
-            <button className="text-sm flex items-center text-black">
-              <span className="text-green-600 mr-1">💬</span>
-              Chat
-            </button>
-            <button className="text-sm flex items-center text-black">
-              <span className="mr-1">📍</span>
-              Address
-            </button> */}
             <button
               onClick={() => router.push('/')}
               className="bg-red-600 text-white px-4 py-1 rounded text-sm flex items-center"
@@ -375,7 +395,13 @@ function OrderContent({ searchParams }) {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <img src="/logo.png" alt="Logo" className="h-10 w-10 rounded-full inline-block mr-2" />
+              {!isLogoLoading && (
+                <img 
+                  src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`}
+                  alt="Logo" 
+                  className="h-10 w-10 rounded-full inline-block mr-2" 
+                />
+              )}
               <h3 className="font-medium inline-block text-black">Tipu Burger and Broast</h3>
             </div>
           </div>

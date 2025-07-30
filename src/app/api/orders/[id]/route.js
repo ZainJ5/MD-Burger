@@ -2,11 +2,10 @@ import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/mongoose";
 import Order from "@/app/models/Order";
 
-// Get single order details
 export async function GET(request, { params }) {
   try {
     await connectDB();
-    const { id } = params;    
+    const { id } = await params;    
     
     const order = await Order.findById(id).lean();
     
@@ -32,7 +31,6 @@ export async function PATCH(request, { params }) {
     const { id } = params;    
     const { isCompleted } = await request.json(); 
     
-    // Use lean() for better performance when getting the updated document
     const order = await Order.findByIdAndUpdate(
       id, 
       { isCompleted }, 
@@ -55,7 +53,6 @@ export async function DELETE(request, { params }) {
     await connectDB();
     const { id } = params;
     
-    // For deletion, it's more efficient to just check existence and then delete
     const exists = await Order.exists({ _id: id });
     
     if (!exists) {

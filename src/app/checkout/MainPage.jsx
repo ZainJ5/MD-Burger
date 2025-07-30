@@ -26,9 +26,8 @@ export default function CheckoutPage() {
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [receiptFile, setReceiptFile] = useState(null);
   const [deliveryAreas, setDeliveryAreas] = useState([]);
-  const [pickupTime, setPickupTime] = useState("20"); // new state for pickup time
+  const [pickupTime, setPickupTime] = useState("20"); 
   
-  // New state variables for discount settings
   const [discountPercentage, setDiscountPercentage] = useState(10);
   const [discountActive, setDiscountActive] = useState(true);
 
@@ -45,8 +44,8 @@ export default function CheckoutPage() {
 
   const easypaisaDetails = {
     title: "EasyPaisa Payment Details",
-    accountNumber: "111222333",
-    accountName: "EasyPaisa Merchant",
+    accountNumber: "03101300101",
+    accountName: "Burhan Ahmed",
     instructions:
       "Transfer using the EasyPaisa app and upload a screenshot of your transaction.",
   };
@@ -256,7 +255,6 @@ export default function CheckoutPage() {
       const data = await response.json();
       console.log("Order placed successfully:", data);
 
-      // Create order details object to save in session storage
       const orderDetails = {
         orderId: data.orderId || `ORD-${Date.now()}`,
         orderDate: new Date().toISOString(),
@@ -574,10 +572,10 @@ export default function CheckoutPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <button
                         type="button"
-                        // onClick={() => {
-                        //   setOnlineOption("easypaisa");
-                        //   setReceiptFile(null);
-                        // }}
+                        onClick={() => {
+                          setOnlineOption("easypaisa");
+                          setReceiptFile(null);
+                        }}
                         className={`p-4 border rounded-md flex flex-col items-center justify-center space-y-2 ${
                           onlineOption === "easypaisa"
                             ? "border-green-500 bg-green-50"

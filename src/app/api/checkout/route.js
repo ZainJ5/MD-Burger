@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/mongoose";
 import Order from "@/app/models/Order";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/app/lib/firebase";
+import path from "path";
+import fs from "fs";
 
 function getId(idField) {
   if (typeof idField === "object" && idField !== null) {
@@ -10,6 +10,25 @@ function getId(idField) {
     if (idField._id) return getId(idField._id);
   }
   return idField;
+}
+
+async function saveFile(file, directory) {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+  
+  const fullPath = path.join(process.cwd(), 'public', directory);
+  if (!fs.existsSync(fullPath)) {
+    fs.mkdirSync(fullPath, { recursive: true });
+  }
+  
+  const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+  const extension = file.name.split('.').pop();
+  const filename = `${uniqueSuffix}.${extension}`;
+  const filePath = path.join(fullPath, filename);
+  
+  fs.writeFileSync(filePath, buffer);
+  
+  return `/${directory}/${filename}`;
 }
 
 export async function POST(request) {
@@ -75,15 +94,15 @@ export async function POST(request) {
     let receiptImageUrl = null;
     const file = formData.get("receiptImage");
     if (paymentMethod === "online" && file && file.size > 0) {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const dateTime = Date.now();
-      const fileName = `orderReceipts/${dateTime}-${file.name}`;
-      const storageRef = ref(storage, fileName);
-      const metadata = { contentType: file.type };
-
-      await uploadBytes(storageRef, buffer, metadata);
-      receiptImageUrl = await getDownloadURL(storageRef);
+      if (!file.type.startsWith('image/')) {
+        return NextResponse.json({ message: "Only image files are allowed" }, { status: 400 });
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        return NextResponse.json({ message: "File size exceeds 5MB limit" }, { status: 400 });
+      }
+      
+      receiptImageUrl = await saveFile(file, 'receipts');
     }
 
     const orderData = {
