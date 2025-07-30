@@ -53,23 +53,11 @@ export default function AdminPortal({ onLogout }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState("");
-  // Add logo-related states
-  const [logoData, setLogoData] = useState({ logo: "/logo.png", updatedAt: new Date() });
+  const [logoData, setLogoData] = useState({
+    logo: "/logo.png",
+    updatedAt: new Date()
+  });
   const [isLogoLoading, setIsLogoLoading] = useState(true);
-  const [isClient, setIsClient] = useState(false);
-  const [timestamp, setTimestamp] = useState(null);
-
-  // Set isClient to true after initial render
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Set timestamp for cache busting only on client side
-  useEffect(() => {
-    if (isClient) {
-      setTimestamp(Date.now().toString());
-    }
-  }, [isClient, logoData.updatedAt]);
 
   useEffect(() => {
     fetchBranches();
@@ -78,7 +66,7 @@ export default function AdminPortal({ onLogout }) {
     fetchFoodItems();
     fetchSiteStatus();
     fetchDeliveryAreas();
-    fetchLogo();
+    fetchLogoData();
 
     setCurrentDateTime(new Date().toLocaleString('en-US', {
       weekday: 'long',
@@ -108,24 +96,24 @@ export default function AdminPortal({ onLogout }) {
     };
   }, []);
 
-  const fetchLogo = async () => {
+  const fetchLogoData = async () => {
     setIsLogoLoading(true);
     try {
-      const response = await fetch('/api/logo');
-      if (response.ok) {
-        const data = await response.json();
+      const res = await fetch('/api/logo', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
         setLogoData(data);
       }
-    } catch (error) {
-      console.error("Error fetching logo:", error);
+    } catch (err) {
+      console.error("Failed to fetch logo:", err);
     } finally {
       setIsLogoLoading(false);
     }
   };
 
-  // Helper function to get image URL with cache busting
-  const getImageUrl = (path) => {
-    return isClient && timestamp ? `${path}?v=${timestamp}` : path;
+  // Get timestamp for logo cache busting
+  const getLogoTimestamp = () => {
+    return logoData?.updatedAt ? new Date(logoData.updatedAt).getTime() : Date.now();
   };
 
   const handleLogout = () => {
@@ -540,11 +528,11 @@ export default function AdminPortal({ onLogout }) {
             </button>
             <div className="flex items-center">
               {!isLogoLoading && (
-                <Image
-                  src={getImageUrl(logoData.logo)}
+                <img
+                  src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`}
                   alt="Restaurant Logo"
-                  width={40}
-                  height={40}
+                  width="40"
+                  height="40"
                   className="object-contain"
                 />
               )}
@@ -688,11 +676,11 @@ export default function AdminPortal({ onLogout }) {
               <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
                 <div className="flex-shrink-0 flex items-center px-4">
                   {!isLogoLoading && (
-                    <Image
-                      src={getImageUrl(logoData.logo)}
+                    <img
+                      src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`}
                       alt="Restaurant Logo"
-                      width={40}
-                      height={40}
+                      width="40"
+                      height="40"
                       className="object-contain"
                     />
                   )}
