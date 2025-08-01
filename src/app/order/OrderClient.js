@@ -86,7 +86,7 @@ function OrderContent({ searchParams }) {
       setLoading(false);
     }
   };
-  const orderDisplayId = `tipu-${(orderCount ).toString().padStart(3, '0')}`;
+  const orderDisplayId = `king-${(orderCount ).toString().padStart(3, '0')}`;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -159,7 +159,7 @@ function OrderContent({ searchParams }) {
               />
             )}
             <div className="ml-3">
-              <h1 className="font-bold text-lg text-black">Tipu Burger and Broast</h1>
+              <h1 className="font-bold text-lg text-black">King Ice Restaurant</h1>
               <p className="text-sm text-green-600">Open</p>
             </div>
           </div>
@@ -251,33 +251,24 @@ function OrderContent({ searchParams }) {
               <div className="space-y-3 text-sm text-black">
                 <div>
                   <p>Shop Name:</p>
-                  <p>Tipu Burger and Broast</p>
+                  <p>King Ice Restaurant</p>
                 </div>
                 <div>
                   <p>Phone Number:</p>
               <div className="flex items-center space-x-1">
                 <a
-                  href="https://wa.me/923332245706"
+                  href="https://wa.me/923122754064"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-bold text-black hover:underline"
                 >
-                  0333 2245706
-                </a>
-                <span>/</span>
-                <a
-                  href="https://wa.me/923463332682"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-black hover:underline"
-                >
-                  0346 3332682
+                  0312 2754064
                 </a>
               </div>
               </div>
                 <div>
                   <p>Location:</p>
-                  <p>{"Clifton"}</p>
+                  <p>{"Landhi"}</p>
                 </div>
               </div>
             </div>
@@ -402,7 +393,7 @@ function OrderContent({ searchParams }) {
                   className="h-10 w-10 rounded-full inline-block mr-2" 
                 />
               )}
-              <h3 className="font-medium inline-block text-black">Tipu Burger and Broast</h3>
+              <h3 className="font-medium inline-block text-black">King Ice Restaurant</h3>
             </div>
           </div>
         </div>

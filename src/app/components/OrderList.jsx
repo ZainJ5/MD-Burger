@@ -1,5 +1,9 @@
+'use client';
+
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Printer, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { useSocket } from "../context/SocketContext";
+import { Toaster } from 'react-hot-toast';
 
 const extractValue = (field) => {
   if (typeof field === "object" && field !== null) {
@@ -46,6 +50,19 @@ const parseItemName = (itemName) => {
     console.error('Error parsing item name:', error);
     return { quantity: 1, cleanName: itemName || 'Unknown Item' };
   }
+};
+
+// Function to extract area from delivery address
+const extractAreaFromAddress = (deliveryAddress) => {
+  if (!deliveryAddress) return null;
+  
+  // Most addresses in the checkout form are formatted as: "street address, area name"
+  const parts = deliveryAddress.split(',');
+  if (parts.length > 1) {
+    return parts[parts.length - 1].trim();
+  }
+  
+  return null;
 };
 
 const TableRowSkeleton = () => (
@@ -106,12 +123,44 @@ export default function OrderList() {
   
   const [pageCache, setPageCache] = useState({});
   const [cacheKey, setCacheKey] = useState("");
+  const [deliveryAreas, setDeliveryAreas] = useState([]);
+
+  // Socket context to receive real-time updates
+  const { latestOrder, notifications } = useSocket();
 
   // State for receipt image modal
   const [receiptModal, setReceiptModal] = useState({
     isOpen: false,
     imageUrl: ""
   });
+
+  // Fetch delivery areas
+  useEffect(() => {
+    const fetchDeliveryAreas = async () => {
+      try {
+        const res = await fetch("/api/delivery-areas");
+        if (res.ok) {
+          const data = await res.json();
+          setDeliveryAreas(data);
+        }
+      } catch (error) {
+        console.error("Error fetching delivery areas:", error);
+      }
+    };
+    
+    fetchDeliveryAreas();
+  }, []);
+
+  // Get delivery fee for a specific area
+  const getDeliveryFeeForArea = useCallback((areaName) => {
+    if (!areaName || !deliveryAreas.length) return 0;
+    
+    const area = deliveryAreas.find(
+      area => area.name.toLowerCase() === areaName.toLowerCase()
+    );
+    
+    return area ? area.fee : 0;
+  }, [deliveryAreas]);
 
   const generateCacheKey = useCallback(() => {
     return `${dateFilter}-${customDate || 'none'}-${typeFilter}`;
@@ -126,12 +175,27 @@ export default function OrderList() {
     }
   }, [dateFilter, customDate, typeFilter, cacheKey, generateCacheKey]);
 
-  const fetchOrders = useCallback(async (page = 1) => {
+  // Immediately refresh the list when a new order is received
+  useEffect(() => {
+    if (latestOrder) {
+      fetchOrders(1, true);
+    }
+  }, [latestOrder]);
+
+  // Also listen for notifications array changes as a fallback
+  useEffect(() => {
+    if (notifications.length > 0 && currentPage === 1) {
+      fetchOrders(1, true);
+    }
+  }, [notifications.length]);
+
+  const fetchOrders = useCallback(async (page = 1, forceRefresh = false) => {
     const currentCacheKey = generateCacheKey();
     
     setError(null);
     
-    const cacheEntry = pageCache[`${currentCacheKey}-${page}`];
+    // Skip cache if forceRefresh is true (for new orders)
+    const cacheEntry = !forceRefresh ? pageCache[`${currentCacheKey}-${page}`] : null;
     
     if (cacheEntry) {
       console.log(`Using cached data for page ${page}`);
@@ -157,6 +221,11 @@ export default function OrderList() {
       
       const controller = new AbortController();
       const signal = controller.signal;
+      
+      // Add cache busting parameter for force refresh
+      if (forceRefresh) {
+        params.append("_t", Date.now());
+      }
       
       const res = await fetch(`/api/orders?${params.toString()}`, { signal });
       
@@ -403,135 +472,114 @@ export default function OrderList() {
     return rangeWithDots.filter((page, index, arr) => arr.indexOf(page) === index);
   }, [currentPage, totalPages]);
 
-  const printOrderDetails = useCallback(async (order) => {
+  // KITCHEN SLIP PRINT FUNCTION
+  const printKitchenSlip = useCallback(async (order) => {
     let orderToPrint = order;
+    
+    // If order doesn't have items, fetch complete order details
     if (!order.items) {
       const fullOrder = await fetchOrderDetails(String(extractValue(order._id)));
       if (!fullOrder) {
-        alert("Could not fetch order details for printing");
+        console.error("Could not fetch order details for kitchen slip");
         return;
       }
       orderToPrint = fullOrder;
     }
     
-    const newWindow = window.open("", "_blank", "width=800,height=600");
-    if (!newWindow) return;
+    const idVal = String(extractValue(orderToPrint._id));
+    const orderNumber = orderNumbers[idVal] || `king-${Math.floor(Math.random() * 10000).toString().padStart(5, '0')}`;
+    const ticketNumber = Math.floor(10000 + Math.random() * 90000); // Generate a random 5-digit ticket number
+    const currentDate = new Date().toLocaleDateString();
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     
-    const itemsList = orderToPrint.items
-      .map((item) => {
-        const price = extractValue(item.price);
-        const { quantity, cleanName } = parseItemName(item.name);
-        return `<li>${quantity}x ${cleanName} - Rs ${price}${
-          item.type ? ` (Type: ${item.type})` : ""
-        }</li>`;
-      })
-      .join("");
-
-    const subtotal = extractValue(orderToPrint.subtotal);
-    const tax = extractValue(orderToPrint.tax);
-    const discount = extractValue(orderToPrint.discount);
-    const total = extractValue(orderToPrint.total);
-    const branch = orderToPrint.branch ? String(extractValue(orderToPrint.branch)) : "";
-    const createdAt = orderToPrint.createdAt
-      ? new Date(orderToPrint.createdAt).toLocaleString()
-      : "";
-    const orderType = orderToPrint.orderType
-      ? orderToPrint.orderType.charAt(0).toUpperCase() + orderToPrint.orderType.slice(1)
-      : "Delivery";
-
+    // Format items for kitchen slip (simple list with quantities)
+    const itemsList = orderToPrint.items.map((item, index) => {
+      const { quantity, cleanName } = parseItemName(item.name);
+      
+      return `
+        <tr>
+          <td style="padding: 3px 0; border-top: 1px dashed #aaa;">${cleanName}</td>
+          <td style="padding: 3px 0; border-top: 1px dashed #aaa; text-align: center;">${quantity}</td>
+        </tr>
+      `;
+    }).join('');
+    
     const htmlContent = `
       <html>
         <head>
-          <title>Order Print</title>
+          <title>Kitchen Order Slip</title>
           <style>
             body {
-              font-family: sans-serif;
-              margin: 20px;
+              font-family: 'Courier New', monospace;
+              margin: 0;
+              padding: 5px;
+              width: 72mm; /* Standard thermal receipt width */
+              font-size: 10px;
             }
-            h2 {
-              margin-bottom: 1rem;
+            .header {
+              text-align: center;
+              margin-bottom: 5px;
             }
-            .details p {
-              margin: 4px 0;
+            .order-info {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 3px;
             }
-            ul {
-              margin-left: 20px;
+            .order-info div {
+              width: 50%;
             }
-            .mt-2 {
-              margin-top: 0.5rem;
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            th {
+              text-align: left;
+              padding: 3px 0;
+              border-bottom: 1px solid #000;
+            }
+            .bold {
+              font-weight: bold;
+            }
+            .centered {
+              text-align: center;
+            }
+            .header-row {
+              background-color: #000;
+              color: #fff;
             }
           </style>
         </head>
         <body>
-          <h2>Order Details</h2>
-          <div class="details">
-            <p><strong>Full Name:</strong> ${orderToPrint.fullName}</p>
-            <p><strong>Mobile:</strong> ${orderToPrint.mobileNumber}</p>
-            ${
-              orderToPrint.alternateMobile
-                ? `<p><strong>Alternate Mobile:</strong> ${orderToPrint.alternateMobile}</p>`
-                : ""
-            }
-            ${
-              orderToPrint.email
-                ? `<p><strong>Email:</strong> ${orderToPrint.email}</p>`
-                : ""
-            }
-            <p><strong>Order Type:</strong> ${orderType}</p>
-            ${
-              orderToPrint.deliveryAddress
-                ? `<p><strong>Address:</strong> ${orderToPrint.deliveryAddress}</p>`
-                : ""
-            }
-            ${
-              orderToPrint.nearestLandmark
-                ? `<p><strong>Nearest Landmark:</strong> ${orderToPrint.nearestLandmark}</p>`
-                : ""
-            }
-            <p><strong>Payment Method:</strong> ${orderToPrint.paymentMethod}</p>
-            ${
-              orderToPrint.paymentInstructions
-                ? `<p><strong>Payment Instructions:</strong> ${orderToPrint.paymentInstructions}</p>`
-                : ""
-            }
-            ${
-              orderToPrint.changeRequest
-                ? `<p><strong>Change Request:</strong> ${orderToPrint.changeRequest}</p>`
-                : ""
-            }
-            ${
-              orderToPrint.promoCode
-                ? `<p><strong>Promo Code:</strong> ${orderToPrint.promoCode}</p>`
-                : ""
-            }
+          <div class="header bold">
+            <div>KOT: Kitchen 1</div>
           </div>
-          <div class="mt-2">
-            <strong>Items:</strong>
-            <ul>
-              ${itemsList}
-            </ul>
+          
+          <div class="order-info">
+            <div>
+              <div><span class="bold">ORDER # :</span> ${orderNumber}</div>
+              <div><span class="bold">TICKET # :</span> ${ticketNumber}</div>
+              <div><span class="bold">TABLE # :</span> ----</div>
+            </div>
+            <div>
+              <div><span class="bold">DATE:</span> ${currentDate}</div>
+              <div><span class="bold">TIME:</span> ${currentTime}</div>
+              <div><span class="bold">WAITER:</span> General</div>
+            </div>
           </div>
-          <div class="mt-2">
-            <p><strong>Subtotal:</strong> ${subtotal} Rs</p>
-            <p><strong>Tax:</strong> ${tax} Rs</p>
-            <p><strong>Discount:</strong> ${discount} Rs</p>
-            <p><strong>Total:</strong> ${total} Rs</p>
+          
+          <div style="margin: 5px 0;">
+            <div><span class="bold">TYPE:</span> ${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
+            <div><span class="bold">KOT #:</span> 1</div>
           </div>
-          ${
-            orderToPrint.isGift && orderToPrint.giftMessage
-              ? `<p class="mt-2"><strong>Gift Message:</strong> ${orderToPrint.giftMessage}</p>`
-              : ""
-          }
-          ${
-            branch
-              ? `<p class="mt-2"><strong>Branch:</strong> ${branch}</p>`
-              : ""
-          }
-          ${
-            createdAt
-              ? `<p class="mt-2"><strong>Order Date:</strong> ${createdAt}</p>`
-              : ""
-          }
+          
+          <table>
+            <tr class="header-row">
+              <th>DESCRIPTION</th>
+              <th style="text-align: center;">Qty</th>
+            </tr>
+            ${itemsList}
+          </table>
+          
           <script>
             window.onload = function() {
               window.print();
@@ -541,15 +589,385 @@ export default function OrderList() {
         </body>
       </html>
     `;
-
+    
+    const newWindow = window.open("", "_blank", "width=300,height=600");
+    if (!newWindow) {
+      console.error("Couldn't open new window for kitchen slip printing");
+      return;
+    }
+    
     newWindow.document.write(htmlContent);
     newWindow.document.close();
-  }, [fetchOrderDetails]);
+  }, [fetchOrderDetails, orderNumbers]);
+
+  // DELIVERY PRE-BILL SLIP PRINT FUNCTION
+  const printDeliveryPreBill = useCallback(async (order) => {
+    let orderToPrint = order;
+    
+    if (!order.items) {
+      const fullOrder = await fetchOrderDetails(String(extractValue(order._id)));
+      if (!fullOrder) {
+        alert("Could not fetch order details for printing");
+        return;
+      }
+      orderToPrint = fullOrder;
+    }
+    
+    const idVal = String(extractValue(orderToPrint._id));
+    const orderNumber = orderNumbers[idVal] || `king-${Math.floor(Math.random() * 10000).toString().padStart(5, '0')}`;
+    const currentDate = new Date().toLocaleDateString();
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // Extract area from delivery address and get delivery fee
+    const area = orderToPrint.area || extractAreaFromAddress(orderToPrint.deliveryAddress);
+    const deliveryFee = orderToPrint.orderType === 'delivery' ? 
+      getDeliveryFeeForArea(area) : 0;
+    
+    const subtotal = extractValue(orderToPrint.subtotal) || 0;
+    const tax = extractValue(orderToPrint.tax) || 0;
+    const discount = extractValue(orderToPrint.discount) || 0;
+    const discountPercentage = orderToPrint.discountPercentage || 0;
+    const total = extractValue(orderToPrint.total) || 0;
+    
+    const itemRows = orderToPrint.items.map((item, index) => {
+      const { quantity, cleanName } = parseItemName(item.name);
+      const price = extractValue(item.price) || 0;
+      const amount = price * quantity;
+      
+      return `
+        <tr>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd;">${index + 1}</td>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd;">${cleanName}</td>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd; text-align: center;">${quantity}</td>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd; text-align: right;">${price}</td>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd; text-align: right;">${amount}</td>
+        </tr>
+      `;
+    }).join('');
+    
+    const htmlContent = `
+      <html>
+        <head>
+          <title>Delivery Pre-Bill</title>
+          <style>
+            body {
+              font-family: 'Courier New', monospace;
+              margin: 0;
+              padding: 5px;
+              width: 72mm; /* Standard thermal receipt width */
+              font-size: 9px;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 5px;
+            }
+            .title {
+              background-color: #000;
+              color: #fff;
+              padding: 3px;
+              text-align: center;
+              font-weight: bold;
+              margin: 5px 0;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .summary {
+              margin-top: 5px;
+              text-align: right;
+            }
+            .customer-info {
+              margin-top: 5px;
+              border: 1px solid #000;
+              padding: 3px;
+            }
+            .bold {
+              font-weight: bold;
+            }
+            .text-right {
+              text-align: right;
+            }
+            .bill-amount {
+              background-color: #000;
+              color: #fff;
+              padding: 2px 5px;
+              margin-top: 3px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="bold">KING ICE FAST FOOD</div>
+            <div>Landhi 3 1/2 SNTN 5609626-7</div>
+            <div>All Prices Are Inclusive of 13% SST</div>
+          </div>
+          
+          <div class="title">DELIVERY PRE-BILL</div>
+          
+          <div style="display: flex; justify-content: space-between;">
+            <div>
+              <div><span class="bold">ORDER #: </span>${orderNumber}</div>
+              <div><span class="bold">TYPE: </span>${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
+              <div><span class="bold">Customer: </span>${orderToPrint.fullName || ''}</div>
+              <div><span class="bold">Cashier: </span>POS</div>
+            </div>
+            <div>
+              <div><span class="bold">Date: </span>${currentDate}</div>
+              <div><span class="bold">Time: </span>${currentTime}</div>
+              <div><span class="bold">Rider: </span>General</div>
+              <div><span class="bold">Covers: </span>1</div>
+            </div>
+          </div>
+          
+          <table style="margin-top: 5px;">
+            <tr>
+              <th style="text-align: left;">SR.#</th>
+              <th style="text-align: left;">DESCRIPTION</th>
+              <th style="text-align: center;">QTY</th>
+              <th style="text-align: right;">RATE</th>
+              <th style="text-align: right;">AMOUNT</th>
+            </tr>
+            ${itemRows}
+          </table>
+          
+          <div style="margin-top: 3px;">
+            <div><span class="bold">Item(s): </span>${orderToPrint.items.length} <span style="float: right;"><span class="bold">Gross Amount: </span>${subtotal}</span></div>
+          </div>
+          
+          <div class="summary">
+            <div><span class="bold">Sales Tax: </span>${tax}</div>
+            <div><span class="bold">Delivery Charges: </span>${deliveryFee}</div>
+            <div><span class="bold">Discount ${discountPercentage}%: </span>${discount}</div>
+            <div class="bill-amount"><span class="bold">Bill Amount: </span>${total}</div>
+          </div>
+          
+          <div class="customer-info">
+            <div><span class="bold">Customer Name & Contact: </span>${orderToPrint.fullName || ''}</div>
+            <div>${orderToPrint.mobileNumber || ''}</div>
+            <div><span class="bold">Complete Address: </span>${orderToPrint.deliveryAddress || ''}</div>
+            <div><span class="bold">Instruction: </span>${orderToPrint.paymentInstructions || '----'}</div>
+          </div>
+        </body>
+        
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(() => window.close(), 500);
+          }
+        </script>
+      </html>
+    `;
+    
+    const newWindow = window.open("", "_blank", "width=300,height=600");
+    if (!newWindow) return;
+    
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+  }, [fetchOrderDetails, orderNumbers, getDeliveryFeeForArea]);
+
+  // DELIVERY PAYMENT RECEIPT PRINT FUNCTION
+  const printDeliveryPaymentReceipt = useCallback(async (order) => {
+    let orderToPrint = order;
+    
+    if (!order.items) {
+      const fullOrder = await fetchOrderDetails(String(extractValue(order._id)));
+      if (!fullOrder) {
+        alert("Could not fetch order details for printing");
+        return;
+      }
+      orderToPrint = fullOrder;
+    }
+    
+    const idVal = String(extractValue(orderToPrint._id));
+    const orderNumber = orderNumbers[idVal] || `king-${Math.floor(Math.random() * 10000).toString().padStart(5, '0')}`;
+    const currentDate = new Date().toLocaleDateString();
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // Extract area from delivery address and get delivery fee
+    const area = orderToPrint.area || extractAreaFromAddress(orderToPrint.deliveryAddress);
+    const deliveryFee = orderToPrint.orderType === 'delivery' ? 
+      getDeliveryFeeForArea(area) : 0;
+    
+    const subtotal = extractValue(orderToPrint.subtotal) || 0;
+    const tax = extractValue(orderToPrint.tax) || 0;
+    const discount = extractValue(orderToPrint.discount) || 0;
+    const total = extractValue(orderToPrint.total) || 0;
+    const paymentMethod = orderToPrint.paymentMethod === 'cod' ? 'Cash' : 'Online Payment';
+    const changeRequest = orderToPrint.changeRequest || '0.00';
+    
+    const itemRows = orderToPrint.items.map((item, index) => {
+      const { quantity, cleanName } = parseItemName(item.name);
+      const price = extractValue(item.price) || 0;
+      const amount = price * quantity;
+      
+      return `
+        <tr>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd;">${index + 1}</td>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd;">${cleanName}</td>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd; text-align: center;">${quantity}</td>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd; text-align: right;">${price}</td>
+          <td style="padding: 2px 0; border-bottom: 1px dotted #ddd; text-align: right;">${amount}</td>
+        </tr>
+      `;
+    }).join('');
+    
+    const htmlContent = `
+      <html>
+        <head>
+          <title>Delivery Payment Receipt</title>
+          <style>
+            body {
+              font-family: 'Courier New', monospace;
+              margin: 0;
+              padding: 5px;
+              width: 72mm; /* Standard thermal receipt width */
+              font-size: 9px;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 5px;
+            }
+            .title {
+              background-color: #000;
+              color: #fff;
+              padding: 3px;
+              text-align: center;
+              font-weight: bold;
+              margin: 5px 0;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .summary {
+              margin-top: 5px;
+              text-align: right;
+            }
+            .customer-info {
+              margin-top: 5px;
+              border: 1px solid #000;
+              padding: 3px;
+            }
+            .payment-info {
+              margin-top: 5px;
+            }
+            .bold {
+              font-weight: bold;
+            }
+            .text-right {
+              text-align: right;
+            }
+            .bill-amount {
+              background-color: #000;
+              color: #fff;
+              padding: 2px 5px;
+              margin-top: 3px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="bold">KING ICE FAST FOOD</div>
+            <div>Landhi 3 1/2 SNTN 5609626-7</div>
+            <div>All Prices Are Inclusive of 13% SST</div>
+          </div>
+          
+          <div class="title">DELIVERY - PAYMENT RECEIPT</div>
+          
+          <div style="display: flex; justify-content: space-between;">
+            <div>
+              <div><span class="bold">ORDER #: </span>${orderNumber}</div>
+              <div><span class="bold">TYPE: </span>${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
+              <div><span class="bold">Customer: </span>${orderToPrint.fullName || ''}</div>
+              <div><span class="bold">Cashier: </span>POS</div>
+            </div>
+            <div>
+              <div><span class="bold">Date: </span>${currentDate}</div>
+              <div><span class="bold">Time: </span>${currentTime}</div>
+              <div><span class="bold">Rider: </span>General</div>
+              <div><span class="bold">Covers: </span>1</div>
+            </div>
+          </div>
+          
+          <table style="margin-top: 5px;">
+            <tr>
+              <th style="text-align: left;">SR.#</th>
+              <th style="text-align: left;">DESCRIPTION</th>
+              <th style="text-align: center;">QTY</th>
+              <th style="text-align: right;">RATE</th>
+              <th style="text-align: right;">AMOUNT</th>
+            </tr>
+            ${itemRows}
+          </table>
+          
+          <div style="margin-top: 3px;">
+            <div><span class="bold">Item(s): </span>${orderToPrint.items.length} <span style="float: right;"><span class="bold">Gross Amount: </span>${subtotal}</span></div>
+          </div>
+          
+          <div class="summary">
+            <div><span class="bold">Delivery Chrgs.: </span>${deliveryFee}</div>
+            <div><span class="bold">Tip Amount: </span>0</div>
+            <div class="bill-amount"><span class="bold">Bill Amount: </span>${total}</div>
+          </div>
+          
+          <div class="payment-info">
+            <div><span class="bold">Payment Method: </span>${paymentMethod}</div>
+            <div style="margin-top: 5px;">
+              <div><span class="bold">Customer Paid: </span>${total}.00</div>
+              <div><span class="bold">Change Return: </span>${changeRequest || '0.00'}</div>
+            </div>
+          </div>
+          
+          <div class="customer-info">
+            <div><span class="bold">Customer Name & Contact: </span>${orderToPrint.fullName || ''}</div>
+            <div>${orderToPrint.mobileNumber || ''}</div>
+            <div><span class="bold">Complete Address: </span>${orderToPrint.deliveryAddress || ''}</div>
+            <div><span class="bold">Instruction: </span>${orderToPrint.paymentInstructions || '----'}</div>
+          </div>
+          
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(() => window.close(), 500);
+            }
+          </script>
+        </body>
+      </html>
+    `;
+    
+    const newWindow = window.open("", "_blank", "width=300,height=600");
+    if (!newWindow) return;
+    
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+  }, [fetchOrderDetails, orderNumbers, getDeliveryFeeForArea]);
+
+  // The original printOrderDetails function is now obsolete with our new specialized printing functions
+  const printOrderDetails = useCallback(async (order) => {
+    // Default to printing delivery payment receipt as before
+    printDeliveryPaymentReceipt(order);
+  }, [printDeliveryPaymentReceipt]);
+
+  // Add a manual refresh button
+  const refreshOrders = () => {
+    fetchOrders(currentPage, true);
+  };
 
   return (
     <div className="max-w-5xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold">Order List</h2>
+        
+        <div className="flex items-center">
+          <button 
+            onClick={refreshOrders}
+            className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+            aria-label="Refresh orders"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
@@ -645,6 +1063,9 @@ export default function OrderList() {
                 ? order.orderType.charAt(0).toUpperCase() +
                   order.orderType.slice(1)
                 : "Delivery";
+                
+              // Extract area from delivery address if available
+              const area = order.area || extractAreaFromAddress(order.deliveryAddress) || "Clifton";
 
               return (
                 <tr key={idVal} className="hover:bg-gray-100">
@@ -652,7 +1073,7 @@ export default function OrderList() {
                   <td className="p-2 border">{orderNumber}</td>
                   <td className="p-2 border">{order.fullName}</td>
                   <td className="p-2 border">{orderType}</td>
-                  <td className="p-2 border w-24">Clifton</td>
+                  <td className="p-2 border w-24">{area}</td>
                   <td className="p-2 border">
                     {extractValue(order.total) || 0}/-
                   </td>
@@ -681,14 +1102,7 @@ export default function OrderList() {
                       className="text-blue-600 hover:text-blue-800"
                       aria-label="Print order details"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 inline-block"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
-                        <path d="M19 8H5c-1.1 0-2 .9-2 2v4h4v5h10v-5h4v-4c0-1.1-.9-2-2-2zm-3 9H8v-5h8v5zm3-11V3H6v3H4v4h16V6h-1z" />
-                      </svg>
+                      <Printer className="h-5 w-5 inline-block" />
                     </button>
                   </td>
                 </tr>
@@ -767,173 +1181,328 @@ export default function OrderList() {
       {selectedOrder && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-lg shadow-lg relative max-w-lg w-full mx-4 max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b">
+            <div className="p-4 border-b flex justify-between items-center bg-red-600 text-white rounded-t-lg">
+              <h3 className="text-lg font-bold">Order Details</h3>
               <button
                 onClick={closeModal}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-white hover:text-gray-200"
                 aria-label="Close"
               >
-                ×
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <h3 className="text-xl font-bold">Order Details</h3>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
               {modalLoading ? (
                 <OrderDetailsSkeleton />
               ) : (
-                <>
-                  <p>
-                    <strong>Full Name:</strong> {selectedOrder.fullName}
-                  </p>
-                  <p>
-                    <strong>Mobile:</strong> {selectedOrder.mobileNumber}
-                  </p>
-                  {selectedOrder.alternateMobile && (
-                    <p>
-                      <strong>Alternate Mobile:</strong>{" "}
-                      {selectedOrder.alternateMobile}
-                    </p>
-                  )}
-                  {selectedOrder.email && (
-                    <p>
-                      <strong>Email:</strong> {selectedOrder.email}
-                    </p>
-                  )}
-                  <p>
-                    <strong>Order Type:</strong>{" "}
-                    {selectedOrder.orderType
-                      ? selectedOrder.orderType.charAt(0).toUpperCase() +
-                        selectedOrder.orderType.slice(1)
-                      : "Delivery"}
-                  </p>
-                  {selectedOrder.deliveryAddress && (
-                    <p>
-                      <strong>Address:</strong> {selectedOrder.deliveryAddress}
-                    </p>
-                  )}
-                  {selectedOrder.nearestLandmark && (
-                    <p>
-                      <strong>Nearest Landmark:</strong>{" "}
-                      {selectedOrder.nearestLandmark}
-                    </p>
-                  )}
-                  <p>
-                    <strong>Payment Method:</strong> {selectedOrder.paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"}
-                  </p>
-                  {/* Display receipt information for online payments */}
-                  {selectedOrder.paymentMethod === "online" && (
-                    <>
-                      {selectedOrder.bankName && (
-                        <p>
-                          <strong>Bank Name:</strong> {selectedOrder.bankName}
-                        </p>
-                      )}
-                      {selectedOrder.receiptImageUrl && (
-                        <div className="mt-3">
-                          <p><strong>Receipt:</strong></p>
-                          <div className="mt-1">
-                            <img 
-                              src={selectedOrder.receiptImageUrl} 
-                              alt="Payment Receipt" 
-                              className="max-w-full h-auto max-h-60 border rounded cursor-pointer hover:opacity-90"
-                              onClick={() => openReceiptModal(selectedOrder.receiptImageUrl)}
-                            />
-                          </div>
+                <div className="space-y-6">
+                  {/* Customer Information */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Customer Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-sm text-gray-600">Full Name:</p>
+                        <p className="font-medium">{selectedOrder.fullName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Mobile Number:</p>
+                        <p className="font-medium">{selectedOrder.mobileNumber}</p>
+                      </div>
+                      {selectedOrder.alternateMobile && (
+                        <div>
+                          <p className="text-sm text-gray-600">Alternate Mobile:</p>
+                          <p className="font-medium">{selectedOrder.alternateMobile}</p>
                         </div>
                       )}
-                    </>
-                  )}
-                  {selectedOrder.paymentInstructions && (
-                    <p>
-                      <strong>Payment Instructions:</strong> {selectedOrder.paymentInstructions}
-                    </p>
-                  )}
-                  {selectedOrder.changeRequest && (
-                    <p>
-                      <strong>Change Request:</strong> {selectedOrder.changeRequest}
-                    </p>
-                  )}
-                  {selectedOrder.promoCode && (
-                    <p>
-                      <strong>Promo Code:</strong> {selectedOrder.promoCode}
-                    </p>
-                  )}
-                  {selectedOrder.items && (
-                    <div className="mt-4">
-                      <strong>Items:</strong>
-                      <ul className="list-disc ml-6">
-                        {selectedOrder.items.map((item, i) => {
-                          const { quantity, cleanName } = parseItemName(item.name);
-                          return (
-                            <li key={i}>
-                              {quantity}x {cleanName} - Rs {extractValue(item.price)}{" "}
-                              {item.type && `(Type: ${item.type})`}
-                            </li>
-                          );
-                        })}
-                      </ul>
+                      {selectedOrder.email && (
+                        <div>
+                          <p className="text-sm text-gray-600">Email:</p>
+                          <p className="font-medium">{selectedOrder.email}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Order Information */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      Order Details
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-sm text-gray-600">Order Type:</p>
+                        <p className="font-medium capitalize">
+                          {selectedOrder.orderType || "Delivery"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Order Status:</p>
+                        <p className={`font-medium ${selectedOrder.isCompleted ? "text-green-600" : "text-red-600"}`}>
+                          {selectedOrder.isCompleted ? "Completed" : "Pending"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Payment Method:</p>
+                        <p className="font-medium">{selectedOrder.paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"}</p>
+                      </div>
+                      {selectedOrder.paymentMethod === "online" && selectedOrder.bankName && (
+                        <div>
+                          <p className="text-sm text-gray-600">Payment Platform:</p>
+                          <p className="font-medium">{selectedOrder.bankName}</p>
+                        </div>
+                      )}
+                      {selectedOrder.createdAt && (
+                        <div>
+                          <p className="text-sm text-gray-600">Order Date:</p>
+                          <p className="font-medium">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Delivery Information */}
+                  {selectedOrder.orderType === "delivery" && selectedOrder.deliveryAddress && (
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Delivery Information
+                      </h4>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-sm text-gray-600">Delivery Address:</p>
+                          <p className="font-medium">{selectedOrder.deliveryAddress}</p>
+                        </div>
+                        {selectedOrder.area && (
+                          <div>
+                            <p className="text-sm text-gray-600">Area:</p>
+                            <p className="font-medium">{selectedOrder.area}</p>
+                          </div>
+                        )}
+                        {selectedOrder.nearestLandmark && (
+                          <div>
+                            <p className="text-sm text-gray-600">Nearest Landmark:</p>
+                            <p className="font-medium">{selectedOrder.nearestLandmark}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
-                  <div className="mt-4">
-                    <p>
-                      <strong>Subtotal:</strong>{" "}
-                      {extractValue(selectedOrder.subtotal)} Rs
-                    </p>
-                    <p>
-                      <strong>Tax:</strong> {extractValue(selectedOrder.tax)} Rs
-                    </p>
-                    <p>
-                      <strong>Discount:</strong>{" "}
-                      {extractValue(selectedOrder.discount)} Rs
-                    </p>
-                    <p>
-                      <strong>Total:</strong> {extractValue(selectedOrder.total)} Rs
-                    </p>
+
+                  {/* Pickup Information */}
+                  {selectedOrder.orderType === "pickup" && selectedOrder.pickupTime && (
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Pickup Information
+                      </h4>
+                      <div>
+                        <p className="text-sm text-gray-600">Pickup Time:</p>
+                        <p className="font-medium">{selectedOrder.pickupTime}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Order Items */}
+                  {selectedOrder.items && (
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Order Items
+                      </h4>
+                      <div className="mt-2 overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead>
+                            <tr>
+                              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                              <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                              <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                              <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {selectedOrder.items.map((item, i) => {
+                              const { quantity, cleanName } = parseItemName(item.name);
+                              const price = extractValue(item.price) || 0;
+                              const total = price * quantity;
+                              
+                              return (
+                                <tr key={i}>
+                                  <td className="px-3 py-2 text-sm text-gray-900">
+                                    <div className="font-medium">{cleanName}</div>
+                                    {item.type && <div className="text-xs text-gray-500">{item.type}</div>}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm text-gray-500 text-center">{quantity}</td>
+                                  <td className="px-3 py-2 text-sm text-gray-500 text-right">Rs. {price}</td>
+                                  <td className="px-3 py-2 text-sm font-medium text-gray-900 text-right">Rs. {total}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Order Summary */}
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      Payment Summary
+                    </h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-medium">Rs. {extractValue(selectedOrder.subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tax:</span>
+                        <span className="font-medium">Rs. {extractValue(selectedOrder.tax)}</span>
+                      </div>
+                      {selectedOrder.orderType === "delivery" && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Delivery Fee:</span>
+                          <span className="font-medium">
+                            Rs. {getDeliveryFeeForArea(selectedOrder.area || extractAreaFromAddress(selectedOrder.deliveryAddress))}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Discount:</span>
+                        <span className="font-medium text-yellow-600">Rs. {extractValue(selectedOrder.discount)}</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-gray-200 mt-2">
+                        <span className="font-semibold">Total:</span>
+                        <span className="font-bold text-red-600">Rs. {extractValue(selectedOrder.total)}</span>
+                      </div>
+                    </div>
                   </div>
-                  {selectedOrder.isGift && selectedOrder.giftMessage && (
-                    <p className="mt-2">
-                      <strong>Gift Message:</strong> {selectedOrder.giftMessage}
-                    </p>
-                  )}
-                  <p className="mt-2">
-                    <strong>Branch:</strong> Clifton
-                  </p>
-                  {selectedOrder.createdAt && (
-                    <p className="mt-2 text-sm text-gray-600">
-                      <strong>Order Date:</strong>{" "}
-                      {new Date(selectedOrder.createdAt).toLocaleString()}
-                    </p>
-                  )}
-                </>
+                  
+                  {/* Additional Information */}
+                  <div className="space-y-3">
+                    {selectedOrder.paymentInstructions && (
+                      <div>
+                        <p className="text-sm text-gray-600 font-medium">Payment Instructions:</p>
+                        <p className="text-sm bg-yellow-50 p-2 rounded border border-yellow-100">
+                          {selectedOrder.paymentInstructions}
+                        </p>
+                      </div>
+                    )}
+                    {selectedOrder.changeRequest && (
+                      <div>
+                        <p className="text-sm text-gray-600 font-medium">Change Request:</p>
+                        <p className="text-sm">Rs. {selectedOrder.changeRequest}</p>
+                      </div>
+                    )}
+                    {selectedOrder.isGift && selectedOrder.giftMessage && (
+                      <div>
+                        <p className="text-sm text-gray-600 font-medium">Gift Message:</p>
+                        <p className="text-sm bg-pink-50 p-2 rounded border border-pink-100">
+                          {selectedOrder.giftMessage}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Payment Receipt Image */}
+                    {selectedOrder.paymentMethod === "online" && selectedOrder.receiptImageUrl && (
+                      <div>
+                        <p className="text-sm text-gray-600 font-medium mb-1">Payment Receipt:</p>
+                        <div className="mt-1">
+                          <img 
+                            src={selectedOrder.receiptImageUrl} 
+                            alt="Payment Receipt" 
+                            className="max-w-full h-auto max-h-60 border rounded cursor-pointer hover:opacity-90"
+                            onClick={() => openReceiptModal(selectedOrder.receiptImageUrl)}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
             
+            {/* Action Buttons */}
             <div className="p-6 border-t">
-              <div className="flex gap-4">
-                <button
-                  onClick={() =>
-                    toggleCompletion(
-                      String(extractValue(selectedOrder._id)),
+              {/* Print Options */}
+              <div className="mb-4">
+                <h4 className="text-sm font-medium mb-2 text-gray-700">Print Options:</h4>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => printKitchenSlip(selectedOrder)}
+                    className="px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition flex items-center"
+                  >
+                    <Printer className="h-4 w-4 mr-1" />
+                    Kitchen Slip
+                  </button>
+                  <button
+                    onClick={() => printDeliveryPreBill(selectedOrder)}
+                    className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition flex items-center"
+                  >
+                    <Printer className="h-4 w-4 mr-1" />
+                    Pre-Bill
+                  </button>
+                  <button
+                    onClick={() => printDeliveryPaymentReceipt(selectedOrder)}
+                    className="px-3 py-2 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition flex items-center"
+                  >
+                    <Printer className="h-4 w-4 mr-1" />
+                    Payment Receipt
+                  </button>
+                </div>
+              </div>
+              
+              {/* Order Actions */}
+              <div>
+                <h4 className="text-sm font-medium mb-2 text-gray-700">Order Actions:</h4>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => toggleCompletion(String(extractValue(selectedOrder._id)), selectedOrder.isCompleted)}
+                    className={`px-3 py-2 text-sm rounded flex items-center ${
                       selectedOrder.isCompleted
-                    )
-                  }
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                  disabled={modalLoading}
-                >
-                  {selectedOrder.isCompleted
-                    ? "Mark as Pending"
-                    : "Mark as Completed"}
-                </button>
-                <button
-                  onClick={() =>
-                    deleteOrder(String(extractValue(selectedOrder._id)))
-                  }
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
-                  disabled={modalLoading}
-                >
-                  Delete Order
-                </button>
+                        ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+                        : "bg-green-600 hover:bg-green-700 text-white"
+                    }`}
+                  >
+                    {selectedOrder.isCompleted ? (
+                      <>
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Mark as Pending
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Mark as Completed
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => deleteOrder(String(extractValue(selectedOrder._id)))}
+                    className="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition flex items-center"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete Order
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -960,6 +1529,8 @@ export default function OrderList() {
           </div>
         </div>
       )}
+      
+      <Toaster position="top-right" />
     </div>
   );
 }
