@@ -1,12 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaCreditCard, FaMoneyBill, FaClock } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useOrderTypeStore } from "../../store/orderTypeStore";
 import { useCartStore } from "../../store/cart";
 import { useBranchStore } from "../../store/branchStore";
 import DeliveryPickupModal from "../components/DeliveryPickupModal";
 import { useRouter } from "next/navigation";
+
+const MIN_ORDER_VALUE = 1; // In Pakistani Rupees
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -27,6 +30,7 @@ export default function CheckoutPage() {
   const [receiptFile, setReceiptFile] = useState(null);
   const [deliveryAreas, setDeliveryAreas] = useState([]);
   const [pickupTime, setPickupTime] = useState("20"); 
+  const [orderPlaced, setOrderPlaced] = useState(false);
   
   const [discountPercentage, setDiscountPercentage] = useState(10);
   const [discountActive, setDiscountActive] = useState(true);
@@ -93,7 +97,6 @@ export default function CheckoutPage() {
     fetchLogoData();
   }, []);
 
-  // Get timestamp for logo cache busting
   const getLogoTimestamp = () => {
     return logoData?.updatedAt ? new Date(logoData.updatedAt).getTime() : Date.now();
   };
@@ -152,72 +155,104 @@ export default function CheckoutPage() {
     }
   }, [subtotal, discountPercentage, discountActive]);
 
-  const handlePlaceOrder = async () => {
-    if (items.length === 0) {
+  const validateForm = () => {
+    if (items.length === 0 && !orderPlaced) {
       toast.error("Your cart is empty. Please add items before placing an order.", {
         style: { background: "#dc2626", color: "#ffffff" },
       });
-      return;
+      return false;
     }
     
-    // Common validation for both order types
-    if (!fullName.trim() || !mobileNumber.trim()) {
-      toast.error("Please fill in all required fields.", {
+    if (!fullName.trim()) {
+      toast.error("Please enter your full name.", {
         style: { background: "#dc2626", color: "#ffffff" },
       });
-      return;
+      return false;
+    }
+    
+    if (!mobileNumber.trim()) {
+      toast.error("Please enter your mobile number.", {
+        style: { background: "#dc2626", color: "#ffffff" },
+      });
+      return false;
     }
     
     const phoneRegex = /^03[0-9]{9}$/;
     if (!phoneRegex.test(mobileNumber.trim())) {
-      toast.error("Please enter a valid number", {
+      toast.error("Please enter a valid mobile number (format: 03XXXXXXXXX)", {
         style: { background: "#dc2626", color: "#ffffff" },
       });
-      return;
+      return false;
     }
     
-    if (!branch || !orderType) {
-      toast.error("Please select your branch and order type.", {
+    if (!branch) {
+      toast.error("Please select a branch for your order.", {
         style: { background: "#dc2626", color: "#ffffff" },
       });
-      return;
+      return false;
     }
     
-    // Order type specific validation
-    if (orderType === "delivery" && (!deliveryAddress.trim() || !selectedArea)) {
-      toast.error("Please enter your delivery address and select an area.", {
+    if (!orderType) {
+      toast.error("Please select an order type (delivery or pickup).", {
         style: { background: "#dc2626", color: "#ffffff" },
       });
-      return;
+      return false;
     }
     
-    if (subtotal < 500) {
-      toast.error("Minimum order value is Rs. 500. Please add more items to your order.", {
+    if (orderType === "delivery") {
+      if (!deliveryAddress.trim()) {
+        toast.error("Please enter your delivery address.", {
+          style: { background: "#dc2626", color: "#ffffff" },
+        });
+        return false;
+      }
+      
+      if (!selectedArea) {
+        toast.error("Please select your delivery area.", {
+          style: { background: "#dc2626", color: "#ffffff" },
+        });
+        return false;
+      }
+    }
+    
+    if (subtotal < MIN_ORDER_VALUE) {
+      toast.error(`Minimum order value is Rs. ${MIN_ORDER_VALUE}. Please add more items to your order.`, {
         style: { background: "#dc2626", color: "#ffffff" },
       });
-      return;
+      return false;
     }
     
     if (grandTotal < 0) {
       toast.error("The total amount cannot be negative. Please review your order.", {
         style: { background: "#dc2626", color: "#ffffff" },
       });
-      return;
+      return false;
     }
     
     if (paymentType === "online") {
       if (!onlineOption) {
-        toast.error("Please select an online payment option.", {
+        toast.error("Please select an online payment method.", {
           style: { background: "#dc2626", color: "#ffffff" },
         });
-        return;
+        return false;
       }
+      
       if (!receiptFile) {
         toast.error("Please upload your payment receipt.", {
           style: { background: "#dc2626", color: "#ffffff" },
         });
-        return;
+        return false;
       }
+    }
+    
+    return true;
+  };
+
+  const handlePlaceOrder = async () => {
+    setOrderPlaced(false);
+    
+    if (!validateForm()) {
+      return;
     }
     
     setIsSubmitting(true);
@@ -239,7 +274,6 @@ export default function CheckoutPage() {
       formData.append("orderType", orderType);
       formData.append("branch", branch?._id);
       
-      // Add order-type specific data
       if (orderType === "delivery") {
         const completeAddress = deliveryAddress.trim() + ", " + selectedArea.name;
         formData.append("alternateMobile", alternateMobile);
@@ -250,7 +284,6 @@ export default function CheckoutPage() {
         formData.append("pickupTime", pickupTime + " minutes");
       }
       
-      // Common fields
       formData.append("email", email);
       formData.append("paymentInstructions", paymentInstructions);
       formData.append("paymentMethod", paymentType);
@@ -279,9 +312,12 @@ export default function CheckoutPage() {
         method: "POST",
         body: formData,
       });
+      
       if (!response.ok) {
-        throw new Error("Failed to place order");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to place order");
       }
+      
       const data = await response.json();
       console.log("Order placed successfully:", data);
 
@@ -323,6 +359,7 @@ export default function CheckoutPage() {
 
       sessionStorage.setItem("lastOrder", JSON.stringify(orderDetails));
 
+      setOrderPlaced(true);
       clearCart();
       resetFormFields();
 
@@ -333,7 +370,7 @@ export default function CheckoutPage() {
       });
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while placing your order. Please try again later.", {
+      toast.error(error.message || "An error occurred while placing your order. Please try again later.", {
         style: { background: "#dc2626", color: "#ffffff" },
       });
     } finally {
@@ -363,6 +400,18 @@ export default function CheckoutPage() {
 
   return (
     <>
+      <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       {(!branch || !orderType) && <DeliveryPickupModal />}
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4">
@@ -434,6 +483,7 @@ export default function CheckoutPage() {
                       placeholder="03xx-xxxxxxx"
                       pattern="^03[0-9]{9}$"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Format: 03xxxxxxxxx</p>
                   </div>
                   {orderType === "pickup" ? (
                     <div>
@@ -763,6 +813,7 @@ export default function CheckoutPage() {
                         placeholder="500"
                       />
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">Enter amount if you need change</p>
                   </div>
                 )}
               </div>
@@ -774,7 +825,7 @@ export default function CheckoutPage() {
                 </div>
                 <span className="text-lg sm:text-xl font-semibold">Rs. {subtotal}</span>
               </div>
-              {items.length > 0 && (
+              {items.length > 0 ? (
                 <div className="mb-4 space-y-2">
                   {items.map((item, index) => (
                     <div
@@ -787,6 +838,10 @@ export default function CheckoutPage() {
                       <span>Rs. {(item.price * item.quantity).toLocaleString()}</span>
                     </div>
                   ))}
+                </div>
+              ) : (
+                <div className="mb-4 py-3 text-center text-red-600 bg-red-50 rounded-md">
+                  Your cart is empty. Please add items to continue.
                 </div>
               )}
               <div className="space-y-4 text-sm sm:text-base text-gray-600">
@@ -814,13 +869,18 @@ export default function CheckoutPage() {
                   <span>Grand Total</span>
                   <span>Rs. {grandTotal}</span>
                 </div>
+                {subtotal < MIN_ORDER_VALUE && (
+                  <div className="mt-2 text-xs text-red-600">
+                    Minimum order value is Rs. {MIN_ORDER_VALUE}. Please add more items.
+                  </div>
+                )}
               </div>
               <div className="mt-6">
                 <button
                   type="button"
                   onClick={handlePlaceOrder}
-                  disabled={isSubmitting}
-                  className="w-full mt-6 bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
+                  disabled={isSubmitting || items.length === 0 || subtotal < MIN_ORDER_VALUE}
+                  className="w-full mt-6 bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Placing Order..." : "Place Order"}
                 </button>

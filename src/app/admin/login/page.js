@@ -115,7 +115,7 @@ export default function Login() {
           </button>
         </form>
         <p className="mt-6 text-center text-gray-500 text-sm">
-          Restaurant Admin Dashboard &copy; {new Date().getFullYear()}
+          Powered By ZABS Creatives
         </p>
       </div>
     </div>

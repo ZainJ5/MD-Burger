@@ -137,6 +137,12 @@ export async function POST(request) {
 
     const newOrder = await Order.create(orderData);
     const populatedOrder = await newOrder.populate("branch");
+    
+    if (global.io) {
+      global.io.emit('newOrder', populatedOrder);
+      console.log('New order event emitted');
+    }
+    
     console.log("Created Order:", populatedOrder);
     return NextResponse.json(populatedOrder, { status: 201 });
   } catch (error) {

@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
     return NextResponse.json(order, { 
       status: 200,
       headers: {
-        'Cache-Control': 'private, max-age=60' // Cache for 60 seconds
+        'Cache-Control': 'private, max-age=60' 
       }
     });
   } catch (error) {
@@ -28,7 +28,7 @@ export async function GET(request, { params }) {
 export async function PATCH(request, { params }) {
   try {
     await connectDB();
-    const { id } = params;    
+    const { id } = await params;    
     const { isCompleted } = await request.json(); 
     
     const order = await Order.findByIdAndUpdate(
@@ -51,7 +51,7 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
     
     const exists = await Order.exists({ _id: id });
     
