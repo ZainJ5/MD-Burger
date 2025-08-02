@@ -6,13 +6,15 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '../../store/cart'
 
+var ORDER_MINIMUMS = { DEFAULT: 0 };
+
 export default function CartDrawer({ isOpen, onClose }) {
   const router = useRouter();
   const { items, total, itemCount, updateItemQuantity, removeFromCart } = useCartStore();
 
   const handleCheckout = () => {
-    if (total < 500) {
-      toast.error("Minimum order value is Rs. 500.");
+    if (total < ORDER_MINIMUMS.DEFAULT) {
+      toast.error(`Minimum order value is Rs. ${ORDER_MINIMUMS.DEFAULT}.`);
       return;
     }
     router.push('/checkout');
