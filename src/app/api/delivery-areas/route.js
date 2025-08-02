@@ -15,7 +15,7 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { name, fee } = await request.json();
+    const { name, fee, isActive = true } = await request.json();
     if (!name || typeof fee !== 'number' || fee < 0) {
       return NextResponse.json({ error: 'Invalid name or fee' }, { status: 400 });
     }
@@ -26,7 +26,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Area already exists' }, { status: 400 });
     }
 
-    const newArea = new DeliveryArea({ name, fee });
+    const newArea = new DeliveryArea({ name, fee, isActive });
     await newArea.save();
     return NextResponse.json(newArea);
   } catch (error) {
@@ -37,17 +37,24 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
-    const { _id, name, fee } = await request.json();
+    const { _id, name, fee, isActive } = await request.json();
     if (!_id || !name || typeof fee !== 'number' || fee < 0) {
       return NextResponse.json({ error: 'Invalid _id, name, or fee' }, { status: 400 });
     }
 
     await connectDB();
+    const updateData = { name, fee, updatedAt: new Date() };
+    
+    if (typeof isActive === 'boolean') {
+      updateData.isActive = isActive;
+    }
+    
     const area = await DeliveryArea.findByIdAndUpdate(
       _id,
-      { name, fee, updatedAt: new Date() },
+      updateData,
       { new: true, runValidators: true }
     );
+    
     if (!area) {
       return NextResponse.json({ error: 'Area not found' }, { status: 404 });
     }

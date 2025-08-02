@@ -17,6 +17,7 @@ import Statistics from "./Statistics";
 import SettingsPopup from "./SettingsPupup";
 import UserDetails from "./UserDetails";
 import DeliveryPickupSettings from "./DeliveryPickupSettings";
+import DeliveryAreasManager from "./DeliveryAreasManager";
 
 const ConfirmationDialog = ({ title, message, onConfirm, onCancel }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -50,10 +51,6 @@ export default function AdminPortal({ onLogout }) {
   const [subcategories, setSubcategories] = useState([]);
   const [foodItems, setFoodItems] = useState([]);
   const [siteStatus, setSiteStatus] = useState(true);
-  const [deliveryAreas, setDeliveryAreas] = useState([]);
-  const [newAreaName, setNewAreaName] = useState("");
-  const [newAreaFee, setNewAreaFee] = useState("");
-  const [editingArea, setEditingArea] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -79,7 +76,6 @@ export default function AdminPortal({ onLogout }) {
     fetchSubcategories();
     fetchFoodItems();
     fetchSiteStatus();
-    fetchDeliveryAreas();
     fetchLogoData();
 
     setCurrentDateTime(new Date().toLocaleString('en-US', {
@@ -194,17 +190,6 @@ export default function AdminPortal({ onLogout }) {
     }
   };
 
-  const fetchDeliveryAreas = async () => {
-    try {
-      const res = await fetch("/api/delivery-areas");
-      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-      const data = await res.json();
-      setDeliveryAreas(data);
-    } catch (error) {
-      console.error("Error fetching delivery areas:", error);
-    }
-  };
-
   const handleToggleSiteStatus = () => {
     setShowConfirmation(true);
   };
@@ -301,88 +286,6 @@ export default function AdminPortal({ onLogout }) {
     }
   };
 
-  const addDeliveryArea = async (e) => {
-    e.preventDefault();
-    if (!newAreaName.trim() || !newAreaFee || newAreaFee < 0) {
-      alert("Please enter a valid area name and fee.");
-      return;
-    }
-    try {
-      const res = await fetch("/api/delivery-areas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newAreaName.trim(), fee: Number(newAreaFee) }),
-      });
-      if (res.ok) {
-        const newArea = await res.json();
-        setDeliveryAreas((prev) => [...prev, newArea]);
-        setNewAreaName("");
-        setNewAreaFee("");
-        alert("Delivery area added successfully!");
-      } else {
-        const error = await res.json();
-        alert(error.error || "Failed to add delivery area.");
-      }
-    } catch (error) {
-      console.error("Error adding delivery area:", error);
-      alert("Error adding delivery area.");
-    }
-  };
-
-  const updateDeliveryArea = async (e) => {
-    e.preventDefault();
-    if (!editingArea.name.trim() || !editingArea.fee || editingArea.fee < 0) {
-      alert("Please enter a valid area name and fee.");
-      return;
-    }
-    try {
-      const res = await fetch("/api/delivery-areas", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          _id: editingArea._id,
-          name: editingArea.name.trim(),
-          fee: Number(editingArea.fee),
-        }),
-      });
-      if (res.ok) {
-        const updatedArea = await res.json();
-        setDeliveryAreas((prev) =>
-          prev.map((area) => (area._id === updatedArea._id ? updatedArea : area))
-        );
-        setEditingArea(null);
-        alert("Delivery area updated successfully!");
-      } else {
-        const error = await res.json();
-        alert(error.error || "Failed to update delivery area.");
-      }
-    } catch (error) {
-      console.error("Error updating delivery area:", error);
-      alert("Error updating delivery area.");
-    }
-  };
-
-  const deleteDeliveryArea = async (areaId) => {
-    if (!confirm("Are you sure you want to delete this delivery area?")) return;
-    try {
-      const res = await fetch("/api/delivery-areas", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: areaId }),
-      });
-      if (res.ok) {
-        setDeliveryAreas((prev) => prev.filter((area) => area._id !== areaId));
-        alert("Delivery area deleted successfully!");
-      } else {
-        const error = await res.json();
-        alert(error.error || "Failed to delete delivery area.");
-      }
-    } catch (error) {
-      console.error("Error deleting delivery area:", error);
-      alert("Error deleting delivery area.");
-    }
-  };
-
   const renderContent = () => {
     switch (selectedTab) {
       case "branch":
@@ -419,94 +322,7 @@ export default function AdminPortal({ onLogout }) {
       case "discountSettings":
         return <PromoCodesManager />;
       case "deliveryAreas":
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Manage Delivery Areas</h3>
-            <form onSubmit={editingArea ? updateDeliveryArea : addDeliveryArea} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Area Name</label>
-                <input
-                  type="text"
-                  value={editingArea ? editingArea.name : newAreaName}
-                  onChange={(e) =>
-                    editingArea
-                      ? setEditingArea({ ...editingArea, name: e.target.value })
-                      : setNewAreaName(e.target.value)
-                  }
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                  placeholder="Enter area name"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Delivery Fee (Rs.)</label>
-                <input
-                  type="number"
-                  value={editingArea ? editingArea.fee : newAreaFee}
-                  onChange={(e) =>
-                    editingArea
-                      ? setEditingArea({ ...editingArea, fee: e.target.value })
-                      : setNewAreaFee(e.target.value)
-                  }
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                  placeholder="Enter delivery fee"
-                  min="0"
-                  required
-                />
-              </div>
-              <div className="flex space-x-4">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
-                >
-                  {editingArea ? "Update Area" : "Add Area"}
-                </button>
-                {editingArea && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingArea(null)}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-all duration-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </form>
-            <div>
-              <h4 className="text-md font-semibold mb-2">Existing Delivery Areas</h4>
-              {deliveryAreas.length === 0 ? (
-                <p className="text-gray-500">No delivery areas added yet.</p>
-              ) : (
-                <ul className="space-y-2 divide-y divide-gray-100">
-                  {deliveryAreas.map((area) => (
-                    <li
-                      key={area._id}
-                      className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-md transition-colors duration-200"
-                    >
-                      <span className="font-medium">
-                        {area.name} <span className="text-gray-500 text-sm ml-2">(Rs. {area.fee})</span>
-                      </span>
-                      <div className="space-x-2">
-                        <button
-                          onClick={() => setEditingArea(area)}
-                          className="text-blue-600 hover:text-blue-800 transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => deleteDeliveryArea(area._id)}
-                          className="text-red-600 hover:text-red-800 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        );
+        return <DeliveryAreasManager />;
       case "deliveryPickupSettings":
         return <DeliveryPickupSettings />;
       case "statistics":
