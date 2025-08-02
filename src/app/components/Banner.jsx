@@ -113,7 +113,6 @@ export default function Banner() {
         if (matchedCategory) {
           setActiveCategoryName(matchedCategory.name);
           
-          // If we have an active subcategory, prioritize its banner
           if (activeSubcategory && subcategoriesData) {
             const activeSubcatId = getId(activeSubcategory);
             const matchedSubcategory = subcategoriesData.find(
@@ -135,7 +134,6 @@ export default function Banner() {
             } else {
               setActiveSubcategoryName(null);
               
-              // Fallback to category banner
               if (matchedCategory.image && currentBannerSrc.current !== matchedCategory.image) {
                 currentBannerSrc.current = matchedCategory.image;
                 setBannerData({
@@ -149,7 +147,6 @@ export default function Banner() {
           } else {
             setActiveSubcategoryName(null);
             
-            // No active subcategory, use category banner
             if (matchedCategory.image && currentBannerSrc.current !== matchedCategory.image) {
               currentBannerSrc.current = matchedCategory.image;
               setBannerData({
@@ -194,7 +191,6 @@ export default function Banner() {
     };
   }, [activeCategory, activeSubcategory, setActiveCategoryName, fetchDataOnce, getId, isMobile]);
 
-  // Display a placeholder if no banner image is available
   if (!bannerData.src || bannerData.hasError) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-16 mt-4">
