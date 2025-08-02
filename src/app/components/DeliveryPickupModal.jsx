@@ -231,10 +231,6 @@ export default function DeliveryPickupModal() {
               </div>
             </div>
           )}
-          
-          <p className="text-xs text-gray-500">
-            You can change these preferences later in your account settings.
-          </p>
         </div>
       </div>
     </div>
