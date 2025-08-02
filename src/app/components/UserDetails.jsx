@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 export default function UserDetails() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingAll, setDownloadingAll] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
     orderCount: "all"
@@ -80,6 +81,85 @@ export default function UserDetails() {
     return "N/A";
   };
 
+  // Function to convert user data to CSV format
+  const convertToCSV = (users) => {
+    const headers = [
+      "Full Name", 
+      "Phone", 
+      "Alt. Phone", 
+      "Email", 
+      "Area", 
+      "Delivery Address", 
+      "Orders Count", 
+      "Total Spent", 
+      "Last Order Date"
+    ];
+    
+    const rows = users.map(user => [
+      user.fullName || "",
+      user.mobileNumber || "",
+      user.alternateMobile || "",
+      user.email || "",
+      extractArea(user.deliveryAddress),
+      user.deliveryAddress || "",
+      user.orderCount,
+      user.totalSpent.toFixed(2),
+      user.lastOrderDate ? formatDate(user.lastOrderDate) : "N/A"
+    ]);
+    
+    return [headers, ...rows]
+      .map(row => 
+        row.map(cell => 
+          typeof cell === 'string' ? `"${cell.replace(/"/g, '""')}"` : cell
+        ).join(',')
+      )
+      .join('\n');
+  };
+
+  // Download individual user data
+  const downloadUserData = (user) => {
+    const csv = convertToCSV([user]);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `user_${user.mobileNumber}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Download all users data
+  const downloadAllUsers = async () => {
+    setDownloadingAll(true);
+    try {
+      const queryParams = new URLSearchParams({
+        search: filters.search,
+        orderCount: filters.orderCount,
+        downloadAll: true
+      });
+      
+      const res = await fetch(`/api/users/download?${queryParams}`);
+      if (!res.ok) throw new Error("Failed to download users");
+      
+      const data = await res.json();
+      const csv = convertToCSV(data.users);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `all_users_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error downloading users:", error);
+    } finally {
+      setDownloadingAll(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
@@ -116,6 +196,31 @@ export default function UserDetails() {
                 </svg>
               </div>
             </div>
+          </div>
+          
+          <div className="w-full sm:w-auto">
+            <button
+              onClick={downloadAllUsers}
+              disabled={downloadingAll || loading}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-red-300"
+            >
+              {downloadingAll ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download All Users
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -156,6 +261,9 @@ export default function UserDetails() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Last Order
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -188,6 +296,16 @@ export default function UserDetails() {
                         <div className="text-sm text-gray-500">
                           {formatDate(user.lastOrderDate)}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => downloadUserData(user)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
                       </td>
                     </tr>
                   ))}

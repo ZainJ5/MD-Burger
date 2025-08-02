@@ -125,16 +125,13 @@ export default function OrderList() {
   const [cacheKey, setCacheKey] = useState("");
   const [deliveryAreas, setDeliveryAreas] = useState([]);
 
-  // Socket context to receive real-time updates
   const { latestOrder, notifications } = useSocket();
 
-  // State for receipt image modal
   const [receiptModal, setReceiptModal] = useState({
     isOpen: false,
     imageUrl: ""
   });
 
-  // Fetch delivery areas
   useEffect(() => {
     const fetchDeliveryAreas = async () => {
       try {
@@ -151,7 +148,6 @@ export default function OrderList() {
     fetchDeliveryAreas();
   }, []);
 
-  // Get delivery fee for a specific area
   const getDeliveryFeeForArea = useCallback((areaName) => {
     if (!areaName || !deliveryAreas.length) return 0;
     
@@ -175,14 +171,12 @@ export default function OrderList() {
     }
   }, [dateFilter, customDate, typeFilter, cacheKey, generateCacheKey]);
 
-  // Immediately refresh the list when a new order is received
   useEffect(() => {
     if (latestOrder) {
       fetchOrders(1, true);
     }
   }, [latestOrder]);
 
-  // Also listen for notifications array changes as a fallback
   useEffect(() => {
     if (notifications.length > 0 && currentPage === 1) {
       fetchOrders(1, true);
@@ -194,7 +188,6 @@ export default function OrderList() {
     
     setError(null);
     
-    // Skip cache if forceRefresh is true (for new orders)
     const cacheEntry = !forceRefresh ? pageCache[`${currentCacheKey}-${page}`] : null;
     
     if (cacheEntry) {
@@ -222,7 +215,6 @@ export default function OrderList() {
       const controller = new AbortController();
       const signal = controller.signal;
       
-      // Add cache busting parameter for force refresh
       if (forceRefresh) {
         params.append("_t", Date.now());
       }
@@ -472,11 +464,9 @@ export default function OrderList() {
     return rangeWithDots.filter((page, index, arr) => arr.indexOf(page) === index);
   }, [currentPage, totalPages]);
 
-  // KITCHEN SLIP PRINT FUNCTION
   const printKitchenSlip = useCallback(async (order) => {
     let orderToPrint = order;
     
-    // If order doesn't have items, fetch complete order details
     if (!order.items) {
       const fullOrder = await fetchOrderDetails(String(extractValue(order._id)));
       if (!fullOrder) {
@@ -488,11 +478,10 @@ export default function OrderList() {
     
     const idVal = String(extractValue(orderToPrint._id));
     const orderNumber = orderNumbers[idVal] || `king-${Math.floor(Math.random() * 10000).toString().padStart(5, '0')}`;
-    const ticketNumber = Math.floor(10000 + Math.random() * 90000); // Generate a random 5-digit ticket number
+    const ticketNumber = Math.floor(10000 + Math.random() * 90000); 
     const currentDate = new Date().toLocaleDateString();
     const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     
-    // Format items for kitchen slip (simple list with quantities)
     const itemsList = orderToPrint.items.map((item, index) => {
       const { quantity, cleanName } = parseItemName(item.name);
       
@@ -505,89 +494,215 @@ export default function OrderList() {
     }).join('');
     
     const htmlContent = `
-      <html>
-        <head>
-          <title>Kitchen Order Slip</title>
-          <style>
-            body {
-              font-family: 'Courier New', monospace;
-              margin: 0;
-              padding: 5px;
-              width: 72mm; /* Standard thermal receipt width */
-              font-size: 10px;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 5px;
-            }
-            .order-info {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 3px;
-            }
-            .order-info div {
-              width: 50%;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-            }
-            th {
-              text-align: left;
-              padding: 3px 0;
-              border-bottom: 1px solid #000;
-            }
-            .bold {
-              font-weight: bold;
-            }
-            .centered {
-              text-align: center;
-            }
-            .header-row {
-              background-color: #000;
-              color: #fff;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header bold">
-            <div>KOT: Kitchen 1</div>
-          </div>
-          
-          <div class="order-info">
-            <div>
-              <div><span class="bold">ORDER # :</span> ${orderNumber}</div>
-              <div><span class="bold">TICKET # :</span> ${ticketNumber}</div>
-              <div><span class="bold">TABLE # :</span> ----</div>
-            </div>
-            <div>
-              <div><span class="bold">DATE:</span> ${currentDate}</div>
-              <div><span class="bold">TIME:</span> ${currentTime}</div>
-              <div><span class="bold">WAITER:</span> General</div>
-            </div>
-          </div>
-          
-          <div style="margin: 5px 0;">
-            <div><span class="bold">TYPE:</span> ${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
-            <div><span class="bold">KOT #:</span> 1</div>
-          </div>
-          
-          <table>
-            <tr class="header-row">
-              <th>DESCRIPTION</th>
-              <th style="text-align: center;">Qty</th>
-            </tr>
-            ${itemsList}
-          </table>
-          
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(() => window.close(), 500);
-            }
-          </script>
-        </body>
-      </html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchen Order Slip</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto+Mono:wght@500&display=swap');
+    
+    body {
+      font-family: 'Roboto Condensed', sans-serif;
+      margin: 0;
+      padding: 6px;
+      width: 72mm; /* Standard thermal receipt width */
+      font-size: 10px;
+      line-height: 1.3;
+      background-color: white;
+    }
+    
+    .kot-container {
+      border: 1.5px solid #222;
+      padding: 8px;
+      border-radius: 2px;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 8px 0;
+      margin-bottom: 5px;
+      position: relative;
+    }
+    
+    .header-title {
+      font-weight: 700;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: inline-block;
+      padding: 3px 10px;
+      background-color: #222;
+      color: white;
+      border-radius: 4px;
+    }
+    
+    .priority-marker {
+      position: absolute;
+      right: 0;
+      top: 5px;
+      background-color: #e74c3c;
+      color: white;
+      font-weight: 700;
+      padding: 2px 6px;
+      font-size: 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+    
+    .order-info {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+      padding: 6px 0;
+      border-top: 1px dashed #444;
+      border-bottom: 1px dashed #444;
+      font-family: 'Roboto Mono', monospace;
+    }
+    
+    .order-info div {
+      width: 50%;
+    }
+    
+    .order-type-section {
+      margin: 8px 0;
+      padding: 5px;
+      background-color: #f5f5f5;
+      border-left: 4px solid #222;
+      font-size: 11px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    
+    th {
+      text-align: left;
+      padding: 6px 4px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #222;
+    }
+    
+    td {
+      padding: 6px 4px;
+      border-bottom: 1px dotted #ccc;
+      font-size: 11px;
+    }
+    
+    .qty-col {
+      text-align: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    
+    .item-name {
+      font-weight: 700;
+      font-size: 12px;
+    }
+    
+    .item-modifier {
+      font-size: 9px;
+      font-style: italic;
+      padding-left: 8px;
+      color: #444;
+    }
+    
+    .bold {
+      font-weight: 700;
+    }
+    
+    .centered {
+      text-align: center;
+    }
+    
+    .header-row {
+      background-color: #222;
+      color: white;
+    }
+    
+    .footer {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 9px;
+      padding-top: 5px;
+      border-top: 1px dashed #444;
+    }
+    
+    .timestamp {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 8px;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    .ticket-number {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="kot-container">
+    <div class="header">
+      <div class="header-title">KITCHEN ORDER</div>
+      <div class="priority-marker">PRIORITY</div>
+    </div>
+    
+    <div class="ticket-number centered">
+      TICKET #: ${ticketNumber}
+    </div>
+    
+    <div class="order-info">
+      <div>
+        <div><span class="bold">ORDER #:</span> ${orderNumber}</div>
+        <div><span class="bold">KOT #:</span> 1</div>
+        <div><span class="bold">TABLE:</span> ----</div>
+      </div>
+      <div>
+        <div><span class="bold">DATE:</span> 2025-08-02</div>
+        <div><span class="bold">TIME:</span> 13:27:15</div>
+        <div><span class="bold">CHEF:</span> Kitchen 1</div>
+      </div>
+    </div>
+    
+    <div class="order-type-section">
+      <div><span class="bold">TYPE:</span> ${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
+      <div><span class="bold">STAFF:</span> General</div>
+    </div>
+    
+    <table>
+      <thead>
+        <tr class="header-row">
+          <th>ITEM DESCRIPTION</th>
+          <th style="text-align: center; width: 40px;">QTY</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsList.replace(/class="/g, 'class="item-name ').replace(/<tr>/g, '<tr class="item-row">')}
+      </tbody>
+    </table>
+    
+    <div class="footer">
+      <div>PREPARE IMMEDIATELY</div>
+      <div class="timestamp">Printed: 2025-08-02 13:27:15 by ZainJ5</div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      window.print();
+      setTimeout(() => window.close(), 500);
+    }
+  </script>
+</body>
+</html>
     `;
     
     const newWindow = window.open("", "_blank", "width=300,height=600");
@@ -600,7 +715,6 @@ export default function OrderList() {
     newWindow.document.close();
   }, [fetchOrderDetails, orderNumbers]);
 
-  // DELIVERY PRE-BILL SLIP PRINT FUNCTION
   const printDeliveryPreBill = useCallback(async (order) => {
     let orderToPrint = order;
     
@@ -618,7 +732,6 @@ export default function OrderList() {
     const currentDate = new Date().toLocaleDateString();
     const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    // Extract area from delivery address and get delivery fee
     const area = orderToPrint.area || extractAreaFromAddress(orderToPrint.deliveryAddress);
     const deliveryFee = orderToPrint.orderType === 'delivery' ? 
       getDeliveryFeeForArea(area) : 0;
@@ -646,117 +759,254 @@ export default function OrderList() {
     }).join('');
     
     const htmlContent = `
-      <html>
-        <head>
-          <title>Delivery Pre-Bill</title>
-          <style>
-            body {
-              font-family: 'Courier New', monospace;
-              margin: 0;
-              padding: 5px;
-              width: 72mm; /* Standard thermal receipt width */
-              font-size: 9px;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 5px;
-            }
-            .title {
-              background-color: #000;
-              color: #fff;
-              padding: 3px;
-              text-align: center;
-              font-weight: bold;
-              margin: 5px 0;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-            }
-            .summary {
-              margin-top: 5px;
-              text-align: right;
-            }
-            .customer-info {
-              margin-top: 5px;
-              border: 1px solid #000;
-              padding: 3px;
-            }
-            .bold {
-              font-weight: bold;
-            }
-            .text-right {
-              text-align: right;
-            }
-            .bill-amount {
-              background-color: #000;
-              color: #fff;
-              padding: 2px 5px;
-              margin-top: 3px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="bold">KING ICE FAST FOOD</div>
-            <div>Landhi 3 1/2 SNTN 5609626-7</div>
-            <div>All Prices Are Inclusive of 13% SST</div>
-          </div>
-          
-          <div class="title">DELIVERY PRE-BILL</div>
-          
-          <div style="display: flex; justify-content: space-between;">
-            <div>
-              <div><span class="bold">ORDER #: </span>${orderNumber}</div>
-              <div><span class="bold">TYPE: </span>${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
-              <div><span class="bold">Customer: </span>${orderToPrint.fullName || ''}</div>
-              <div><span class="bold">Cashier: </span>POS</div>
-            </div>
-            <div>
-              <div><span class="bold">Date: </span>${currentDate}</div>
-              <div><span class="bold">Time: </span>${currentTime}</div>
-              <div><span class="bold">Rider: </span>General</div>
-              <div><span class="bold">Covers: </span>1</div>
-            </div>
-          </div>
-          
-          <table style="margin-top: 5px;">
-            <tr>
-              <th style="text-align: left;">SR.#</th>
-              <th style="text-align: left;">DESCRIPTION</th>
-              <th style="text-align: center;">QTY</th>
-              <th style="text-align: right;">RATE</th>
-              <th style="text-align: right;">AMOUNT</th>
-            </tr>
-            ${itemRows}
-          </table>
-          
-          <div style="margin-top: 3px;">
-            <div><span class="bold">Item(s): </span>${orderToPrint.items.length} <span style="float: right;"><span class="bold">Gross Amount: </span>${subtotal}</span></div>
-          </div>
-          
-          <div class="summary">
-            <div><span class="bold">Sales Tax: </span>${tax}</div>
-            <div><span class="bold">Delivery Charges: </span>${deliveryFee}</div>
-            <div><span class="bold">Discount ${discountPercentage}%: </span>${discount}</div>
-            <div class="bill-amount"><span class="bold">Bill Amount: </span>${total}</div>
-          </div>
-          
-          <div class="customer-info">
-            <div><span class="bold">Customer Name & Contact: </span>${orderToPrint.fullName || ''}</div>
-            <div>${orderToPrint.mobileNumber || ''}</div>
-            <div><span class="bold">Complete Address: </span>${orderToPrint.deliveryAddress || ''}</div>
-            <div><span class="bold">Instruction: </span>${orderToPrint.paymentInstructions || '----'}</div>
-          </div>
-        </body>
-        
-        <script>
-          window.onload = function() {
-            window.print();
-            setTimeout(() => window.close(), 500);
-          }
-        </script>
-      </html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery Pre-Bill</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap');
+    
+    body {
+      font-family: 'Open Sans', sans-serif;
+      margin: 0;
+      padding: 8px;
+      width: 72mm; /* Standard thermal receipt width */
+      font-size: 9px;
+      line-height: 1.4;
+      color: #333;
+    }
+    
+    .receipt-container {
+      border: 1px solid #ddd;
+      padding: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background-color: white;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #ccc;
+    }
+    
+    .restaurant-name {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    
+    .restaurant-info {
+      font-size: 8px;
+      color: #555;
+    }
+    
+    .title-container {
+      margin: 10px 0;
+      text-align: center;
+    }
+    
+    .receipt-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      background-color: #222;
+      padding: 6px 0;
+      letter-spacing: 1px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .order-details {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .order-details div {
+      margin: 2px 0;
+    }
+    
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 9px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      color: #222;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 8px;
+    }
+    
+    th {
+      font-weight: 600;
+      text-align: left;
+      padding: 4px 2px;
+      border-bottom: 1px solid #ddd;
+      text-transform: uppercase;
+      font-size: 7px;
+      color: #555;
+    }
+    
+    td {
+      padding: 3px 2px;
+      border-bottom: 1px dotted #eee;
+    }
+    
+    .item-count {
+      margin: 6px 0;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .summary {
+      margin-top: 8px;
+      text-align: right;
+      background-color: #f9f9f9;
+      padding: 6px;
+      border-radius: 3px;
+    }
+    
+    .summary div {
+      margin: 3px 0;
+    }
+    
+    .bill-amount {
+      background-color: #222;
+      color: #fff;
+      padding: 6px;
+      margin-top: 5px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .customer-info {
+      margin-top: 10px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      background-color: #f9f9f9;
+    }
+    
+    .customer-info div {
+      margin-bottom: 3px;
+    }
+    
+    .bold {
+      font-weight: 600;
+      color: #222;
+    }
+    
+    .text-right {
+      text-align: right;
+    }
+    
+    .footer {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 8px;
+      font-style: italic;
+      color: #777;
+      padding-top: 6px;
+      border-top: 1px dashed #ccc;
+    }
+    
+    .print-info {
+      font-size: 7px;
+      color: #888;
+      text-align: center;
+      margin-top: 8px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt-container">
+    <div class="header">
+      <div class="restaurant-name">KING ICE FAST FOOD</div>
+      <div class="restaurant-info">Landhi 3 1/2 SNTN 5609626-7</div>
+      <div class="restaurant-info">All Prices Are Inclusive of 13% SST</div>
+    </div>
+    
+    <div class="title-container">
+      <div class="receipt-title">DELIVERY PRE-BILL</div>
+    </div>
+    
+    <div class="order-details">
+      <div>
+        <div><span class="bold">ORDER #: </span>${orderNumber}</div>
+        <div><span class="bold">TYPE: </span>${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
+        <div><span class="bold">Customer: </span>${orderToPrint.fullName || ''}</div>
+        <div><span class="bold">Cashier: </span>General</div>
+      </div>
+      <div>
+        <div><span class="bold">Date: </span>2025-08-02</div>
+        <div><span class="bold">Time: </span>13:19:58</div>
+        <div><span class="bold">Rider: </span>General</div>
+        <div><span class="bold">Covers: </span>1</div>
+      </div>
+    </div>
+    
+    <div class="section-title">ORDER DETAILS</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Sr.#</th>
+          <th>Description</th>
+          <th style="text-align: center;">Qty</th>
+          <th style="text-align: right;">Rate</th>
+          <th style="text-align: right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemRows}
+      </tbody>
+    </table>
+    
+    <div class="item-count">
+      <div><span class="bold">Item(s): </span>${orderToPrint.items.length}</div>
+      <div><span class="bold">Gross Amount: </span>${subtotal}</div>
+    </div>
+    
+    <div class="summary">
+      <div><span class="bold">Sales Tax: </span>${tax}</div>
+      <div><span class="bold">Delivery Charges: </span>${deliveryFee}</div>
+      <div><span class="bold">Discount ${discountPercentage}%: </span>${discount}</div>
+      <div class="bill-amount">
+        <span class="bold">BILL AMOUNT: </span>${total}
+      </div>
+    </div>
+    
+    <div class="customer-info">
+      <div><span class="bold">Customer Name & Contact: </span>${orderToPrint.fullName || ''}</div>
+      <div>${orderToPrint.mobileNumber || ''}</div>
+      <div><span class="bold">Complete Address: </span>${orderToPrint.deliveryAddress || ''}</div>
+      <div><span class="bold">Instruction: </span>${orderToPrint.paymentInstructions || '----'}</div>
+    </div>
+    
+
+  <script>
+    window.onload = function() {
+      window.print();
+      setTimeout(() => window.close(), 500);
+    }
+  </script>
+</body>
+</html>
     `;
     
     const newWindow = window.open("", "_blank", "width=300,height=600");
@@ -766,7 +1016,6 @@ export default function OrderList() {
     newWindow.document.close();
   }, [fetchOrderDetails, orderNumbers, getDeliveryFeeForArea]);
 
-  // DELIVERY PAYMENT RECEIPT PRINT FUNCTION
   const printDeliveryPaymentReceipt = useCallback(async (order) => {
     let orderToPrint = order;
     
@@ -784,7 +1033,6 @@ export default function OrderList() {
     const currentDate = new Date().toLocaleDateString();
     const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    // Extract area from delivery address and get delivery fee
     const area = orderToPrint.area || extractAreaFromAddress(orderToPrint.deliveryAddress);
     const deliveryFee = orderToPrint.orderType === 'delivery' ? 
       getDeliveryFeeForArea(area) : 0;
@@ -813,127 +1061,267 @@ export default function OrderList() {
     }).join('');
     
     const htmlContent = `
-      <html>
-        <head>
-          <title>Delivery Payment Receipt</title>
-          <style>
-            body {
-              font-family: 'Courier New', monospace;
-              margin: 0;
-              padding: 5px;
-              width: 72mm; /* Standard thermal receipt width */
-              font-size: 9px;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 5px;
-            }
-            .title {
-              background-color: #000;
-              color: #fff;
-              padding: 3px;
-              text-align: center;
-              font-weight: bold;
-              margin: 5px 0;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-            }
-            .summary {
-              margin-top: 5px;
-              text-align: right;
-            }
-            .customer-info {
-              margin-top: 5px;
-              border: 1px solid #000;
-              padding: 3px;
-            }
-            .payment-info {
-              margin-top: 5px;
-            }
-            .bold {
-              font-weight: bold;
-            }
-            .text-right {
-              text-align: right;
-            }
-            .bill-amount {
-              background-color: #000;
-              color: #fff;
-              padding: 2px 5px;
-              margin-top: 3px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="bold">KING ICE FAST FOOD</div>
-            <div>Landhi 3 1/2 SNTN 5609626-7</div>
-            <div>All Prices Are Inclusive of 13% SST</div>
-          </div>
-          
-          <div class="title">DELIVERY - PAYMENT RECEIPT</div>
-          
-          <div style="display: flex; justify-content: space-between;">
-            <div>
-              <div><span class="bold">ORDER #: </span>${orderNumber}</div>
-              <div><span class="bold">TYPE: </span>${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
-              <div><span class="bold">Customer: </span>${orderToPrint.fullName || ''}</div>
-              <div><span class="bold">Cashier: </span>POS</div>
-            </div>
-            <div>
-              <div><span class="bold">Date: </span>${currentDate}</div>
-              <div><span class="bold">Time: </span>${currentTime}</div>
-              <div><span class="bold">Rider: </span>General</div>
-              <div><span class="bold">Covers: </span>1</div>
-            </div>
-          </div>
-          
-          <table style="margin-top: 5px;">
-            <tr>
-              <th style="text-align: left;">SR.#</th>
-              <th style="text-align: left;">DESCRIPTION</th>
-              <th style="text-align: center;">QTY</th>
-              <th style="text-align: right;">RATE</th>
-              <th style="text-align: right;">AMOUNT</th>
-            </tr>
-            ${itemRows}
-          </table>
-          
-          <div style="margin-top: 3px;">
-            <div><span class="bold">Item(s): </span>${orderToPrint.items.length} <span style="float: right;"><span class="bold">Gross Amount: </span>${subtotal}</span></div>
-          </div>
-          
-          <div class="summary">
-            <div><span class="bold">Delivery Chrgs.: </span>${deliveryFee}</div>
-            <div><span class="bold">Tip Amount: </span>0</div>
-            <div class="bill-amount"><span class="bold">Bill Amount: </span>${total}</div>
-          </div>
-          
-          <div class="payment-info">
-            <div><span class="bold">Payment Method: </span>${paymentMethod}</div>
-            <div style="margin-top: 5px;">
-              <div><span class="bold">Customer Paid: </span>${total}.00</div>
-              <div><span class="bold">Change Return: </span>${changeRequest || '0.00'}</div>
-            </div>
-          </div>
-          
-          <div class="customer-info">
-            <div><span class="bold">Customer Name & Contact: </span>${orderToPrint.fullName || ''}</div>
-            <div>${orderToPrint.mobileNumber || ''}</div>
-            <div><span class="bold">Complete Address: </span>${orderToPrint.deliveryAddress || ''}</div>
-            <div><span class="bold">Instruction: </span>${orderToPrint.paymentInstructions || '----'}</div>
-          </div>
-          
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(() => window.close(), 500);
-            }
-          </script>
-        </body>
-      </html>
+    <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery Payment Receipt</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap');
+    
+    body {
+      font-family: 'Open Sans', sans-serif;
+      margin: 0;
+      padding: 8px;
+      width: 72mm; /* Standard thermal receipt width */
+      font-size: 9px;
+      line-height: 1.4;
+      color: #333;
+    }
+    
+    .receipt-container {
+      border: 1px solid #ddd;
+      padding: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #ccc;
+    }
+    
+    .restaurant-name {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    
+    .restaurant-info {
+      font-size: 8px;
+      color: #555;
+    }
+    
+    .title-container {
+      margin: 10px 0;
+      text-align: center;
+    }
+    
+    .receipt-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      background-color: #222;
+      padding: 6px 0;
+      letter-spacing: 1px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .order-details {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .order-details div {
+      margin: 2px 0;
+    }
+    
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 9px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      color: #222;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 8px;
+    }
+    
+    th {
+      font-weight: 600;
+      text-align: left;
+      padding: 4px 2px;
+      border-bottom: 1px solid #ddd;
+      text-transform: uppercase;
+      font-size: 7px;
+      color: #555;
+    }
+    
+    td {
+      padding: 3px 2px;
+      border-bottom: 1px dotted #eee;
+    }
+    
+    .item-count {
+      margin: 6px 0;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .summary {
+      margin-top: 8px;
+      text-align: right;
+    }
+    
+    .summary div {
+      margin: 3px 0;
+    }
+    
+    .bill-amount {
+      background-color: #222;
+      color: #fff;
+      padding: 6px;
+      margin-top: 5px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .payment-info {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed #ccc;
+    }
+    
+    .payment-method {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    
+    .payment-details {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    
+    .customer-info {
+      margin-top: 10px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      background-color: #f9f9f9;
+    }
+    
+    .bold {
+      font-weight: 600;
+      color: #222;
+    }
+    
+    .text-right {
+      text-align: right;
+    }
+    
+    .footer {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 8px;
+      font-style: italic;
+      color: #777;
+      padding-top: 6px;
+      border-top: 1px dashed #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt-container">
+    <div class="header">
+      <div class="restaurant-name">KING ICE FAST FOOD</div>
+      <div class="restaurant-info">Landhi 3 1/2 SNTN 5609626-7</div>
+      <div class="restaurant-info">All Prices Are Inclusive of 13% SST</div>
+    </div>
+    
+    <div class="title-container">
+      <div class="receipt-title">DELIVERY - PAYMENT RECEIPT</div>
+    </div>
+    
+    <div class="order-details">
+      <div>
+        <div><span class="bold">ORDER #: </span>${orderNumber}</div>
+        <div><span class="bold">TYPE: </span>${orderToPrint.orderType?.charAt(0).toUpperCase() + orderToPrint.orderType?.slice(1) || 'Delivery'}</div>
+        <div><span class="bold">Customer: </span>${orderToPrint.fullName || ''}</div>
+        <div><span class="bold">Cashier: </span>POS</div>
+      </div>
+      <div>
+        <div><span class="bold">Date: </span>${currentDate}</div>
+        <div><span class="bold">Time: </span>${currentTime}</div>
+        <div><span class="bold">Rider: </span>General</div>
+        <div><span class="bold">Covers: </span>1</div>
+      </div>
+    </div>
+    
+    <div class="section-title">ORDER ITEMS</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Sr.#</th>
+          <th>Description</th>
+          <th style="text-align: center;">Qty</th>
+          <th style="text-align: right;">Rate</th>
+          <th style="text-align: right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemRows}
+      </tbody>
+    </table>
+    
+    <div class="item-count">
+      <div><span class="bold">Item(s): </span>${orderToPrint.items.length}</div>
+      <div><span class="bold">Gross Amount: </span>${subtotal}</div>
+    </div>
+    
+    <div class="summary">
+      <div><span class="bold">Delivery Charges: </span>${deliveryFee}</div>
+      <div><span class="bold">Tip Amount: </span>0</div>
+      <div class="bill-amount">
+        <span class="bold">BILL AMOUNT: </span>${total}
+      </div>
+    </div>
+    
+    <div class="payment-info">
+      <div class="payment-method"><span class="bold">Payment Method: </span>${paymentMethod}</div>
+      <div class="payment-details">
+        <div><span class="bold">Customer Paid: </span>${total}.00</div>
+        <div><span class="bold">Change Return: </span>${changeRequest || '0.00'}</div>
+      </div>
+    </div>
+    
+    <div class="customer-info">
+      <div><span class="bold">Customer Name & Contact: </span>${orderToPrint.fullName || ''}</div>
+      <div>${orderToPrint.mobileNumber || ''}</div>
+      <div><span class="bold">Complete Address: </span>${orderToPrint.deliveryAddress || ''}</div>
+      <div><span class="bold">Instruction: </span>${orderToPrint.paymentInstructions || '----'}</div>
+    </div>
+    
+    <div class="footer">
+      Thank you for choosing King Ice Fast Food!
+      <br>We appreciate your business
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      window.print();
+      setTimeout(() => window.close(), 500);
+    }
+  </script>
+</body>
+</html>
     `;
     
     const newWindow = window.open("", "_blank", "width=300,height=600");
@@ -943,19 +1331,16 @@ export default function OrderList() {
     newWindow.document.close();
   }, [fetchOrderDetails, orderNumbers, getDeliveryFeeForArea]);
 
-  // The original printOrderDetails function is now obsolete with our new specialized printing functions
   const printOrderDetails = useCallback(async (order) => {
-    // Default to printing delivery payment receipt as before
     printDeliveryPaymentReceipt(order);
   }, [printDeliveryPaymentReceipt]);
 
-  // Add a manual refresh button
   const refreshOrders = () => {
     fetchOrders(currentPage, true);
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto p-6 overflow-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold">Order List</h2>
         
@@ -1064,7 +1449,6 @@ export default function OrderList() {
                   order.orderType.slice(1)
                 : "Delivery";
                 
-              // Extract area from delivery address if available
               const area = order.area || extractAreaFromAddress(order.deliveryAddress) || "Clifton";
 
               return (
@@ -1199,7 +1583,6 @@ export default function OrderList() {
                 <OrderDetailsSkeleton />
               ) : (
                 <div className="space-y-6">
-                  {/* Customer Information */}
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1231,7 +1614,6 @@ export default function OrderList() {
                     </div>
                   </div>
 
-                  {/* Order Information */}
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1271,7 +1653,6 @@ export default function OrderList() {
                     </div>
                   </div>
 
-                  {/* Delivery Information */}
                   {selectedOrder.orderType === "delivery" && selectedOrder.deliveryAddress && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
@@ -1302,7 +1683,6 @@ export default function OrderList() {
                     </div>
                   )}
 
-                  {/* Pickup Information */}
                   {selectedOrder.orderType === "pickup" && selectedOrder.pickupTime && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
@@ -1318,7 +1698,6 @@ export default function OrderList() {
                     </div>
                   )}
 
-                  {/* Order Items */}
                   {selectedOrder.items && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                       <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
@@ -1361,7 +1740,6 @@ export default function OrderList() {
                     </div>
                   )}
 
-                  {/* Order Summary */}
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <h4 className="text-md font-semibold mb-3 text-gray-700 flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1397,7 +1775,6 @@ export default function OrderList() {
                     </div>
                   </div>
                   
-                  {/* Additional Information */}
                   <div className="space-y-3">
                     {selectedOrder.paymentInstructions && (
                       <div>
@@ -1422,7 +1799,6 @@ export default function OrderList() {
                       </div>
                     )}
                     
-                    {/* Payment Receipt Image */}
                     {selectedOrder.paymentMethod === "online" && selectedOrder.receiptImageUrl && (
                       <div>
                         <p className="text-sm text-gray-600 font-medium mb-1">Payment Receipt:</p>
@@ -1441,9 +1817,7 @@ export default function OrderList() {
               )}
             </div>
             
-            {/* Action Buttons */}
             <div className="p-6 border-t">
-              {/* Print Options */}
               <div className="mb-4">
                 <h4 className="text-sm font-medium mb-2 text-gray-700">Print Options:</h4>
                 <div className="flex flex-wrap gap-2">
@@ -1471,7 +1845,6 @@ export default function OrderList() {
                 </div>
               </div>
               
-              {/* Order Actions */}
               <div>
                 <h4 className="text-sm font-medium mb-2 text-gray-700">Order Actions:</h4>
                 <div className="flex flex-wrap gap-2">

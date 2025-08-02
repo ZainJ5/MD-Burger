@@ -127,7 +127,8 @@ export default function CheckoutPage() {
         const res = await fetch("/api/delivery-areas");
         if (res.ok) {
           const data = await res.json();
-          setDeliveryAreas(data);
+          // Filter to only show active delivery areas
+          setDeliveryAreas(data.filter(area => area.isActive));
         } else {
           toast.error("Failed to fetch delivery areas. Please try again later.", {
             style: { background: "#dc2626", color: "#ffffff" },
@@ -669,10 +670,6 @@ export default function CheckoutPage() {
                       </button>
                       <button
                         type="button"
-                        // onClick={() => {
-                        //   setOnlineOption("jazzcash");
-                        //   setReceiptFile(null);
-                        // }}
                         className={`p-4 border rounded-md flex flex-col items-center justify-center space-y-2 ${
                           onlineOption === "jazzcash"
                             ? "border-blue-500 bg-blue-50"
@@ -684,10 +681,6 @@ export default function CheckoutPage() {
                       </button>
                       <button
                         type="button"
-                        // onClick={() => {
-                        //   setOnlineOption("bank_transfer");
-                        //   setReceiptFile(null);
-                        // }}
                         className={`p-4 border rounded-md flex flex-col items-center justify-center space-y-2 ${
                           onlineOption === "bank_transfer"
                             ? "border-red-500 bg-red-50"
