@@ -43,11 +43,11 @@ export default function OrderDetailPage() {
       setLoading(true);
       try {
         const res = await fetch(`/api/orders/${id}`);
-        
+
         if (res.ok) {
           const data = await res.json();
           setOrder(data);
-          
+
           // Extract area from delivery address if present
           if (data.deliveryAddress && data.orderType === "delivery") {
             extractAreaFromAddress(data.deliveryAddress);
@@ -84,7 +84,7 @@ export default function OrderDetailPage() {
   // Extract area name from the delivery address
   const extractAreaFromAddress = (address) => {
     if (!address) return;
-    
+
     // The address format is typically: "Street address, Area name"
     const addressParts = address.split(', ');
     if (addressParts.length > 1) {
@@ -96,9 +96,9 @@ export default function OrderDetailPage() {
   // Find area fee from the extracted area name
   useEffect(() => {
     if (extractedArea && deliveryAreas.length > 0) {
-      const matchingArea = deliveryAreas.find(area => 
+      const matchingArea = deliveryAreas.find(area =>
         area.name.toLowerCase() === extractedArea.toLowerCase());
-      
+
       if (matchingArea) {
         setAreaFee(matchingArea.fee);
       }
@@ -108,7 +108,7 @@ export default function OrderDetailPage() {
   // Check current status from API
   const checkLiveStatus = async () => {
     if (!order || !id) return;
-    
+
     setIsCheckingStatus(true);
     try {
       const res = await fetch(`/api/orders/${id}`);
@@ -135,7 +135,7 @@ export default function OrderDetailPage() {
 
   // Get status badge color
   const getStatusColor = (status) => {
-    switch(status?.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "pending":
         return "bg-amber-50 text-amber-700 border-amber-200";
       case "in-process":
@@ -157,7 +157,7 @@ export default function OrderDetailPage() {
 
   // Get status description
   const getStatusDescription = (status) => {
-    switch(status?.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "pending":
         return "Your order has been received and is awaiting processing.";
       case "in-process":
@@ -179,7 +179,7 @@ export default function OrderDetailPage() {
 
   // Get status icon
   const getStatusIcon = (status) => {
-    switch(status?.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "pending":
         return <Clock className="h-5 w-5" />;
       case "in-process":
@@ -208,9 +208,9 @@ export default function OrderDetailPage() {
 
   // Get status percentage for progress bar
   const getStatusPercentage = (status) => {
-    switch(status?.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "pending": return 25;
-      case "in-process": 
+      case "in-process":
       case "in process": return 50;
       case "dispatched": return 75;
       case "complete":
@@ -283,7 +283,7 @@ export default function OrderDetailPage() {
   // Get a cleaner address (without the area part if it was extracted)
   const getCleanAddress = () => {
     if (!displayOrder.deliveryAddress || !extractedArea) return displayOrder.deliveryAddress;
-    
+
     // Remove the area from the end of the address
     const addressWithoutArea = displayOrder.deliveryAddress.replace(`, ${extractedArea}`, '');
     return addressWithoutArea;
@@ -392,7 +392,7 @@ export default function OrderDetailPage() {
 
             <div className="p-4 border rounded-lg bg-gray-50">
               <p className="text-gray-700">{getStatusDescription(currentStatus)}</p>
-              
+
               {currentStatus.toLowerCase() === "dispatched" && displayOrder.riderName && (
                 <div className="mt-4 p-4 bg-purple-50 border border-purple-100 rounded-lg text-purple-800">
                   <div className="flex items-center">
@@ -401,7 +401,7 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
               )}
-              
+
               {currentStatus.toLowerCase().includes("cancel") && displayOrder.cancelReason && (
                 <div className="mt-4 p-4 bg-rose-50 border border-rose-100 rounded-lg text-rose-800">
                   <div className="flex items-center">
@@ -415,7 +415,7 @@ export default function OrderDetailPage() {
               )}
             </div>
           </div>
-          
+
           <div className="hidden sm:block sm:flex items-center justify-center border-t border-gray-200 bg-gray-50 px-4 py-3">
             <button
               onClick={checkLiveStatus}
@@ -448,7 +448,7 @@ export default function OrderDetailPage() {
                   )}
                 </span>
               </div>
-              
+
               {/* Order Items */}
               <div className="px-6 py-5">
                 <div className="divide-y divide-gray-200">
@@ -495,7 +495,7 @@ export default function OrderDetailPage() {
                   })}
                 </div>
               </div>
-              
+
               {/* Order Summary */}
               <div className="bg-gray-50 px-6 py-5 border-t border-gray-200">
                 <div className="flex justify-end">
@@ -505,14 +505,14 @@ export default function OrderDetailPage() {
                         <dt>Subtotal</dt>
                         <dd className="text-gray-900 font-medium">Rs. {safeGetNumber(displayOrder.subtotal).toLocaleString()}</dd>
                       </div>
-                      
+
                       {safeGetNumber(displayOrder.tax) > 0 && (
                         <div className="flex justify-between text-gray-500">
                           <dt>Tax</dt>
                           <dd className="text-gray-900 font-medium">Rs. {safeGetNumber(displayOrder.tax).toLocaleString()}</dd>
                         </div>
                       )}
-                      
+
                       {displayOrder.orderType === "delivery" && (
                         <div className="flex justify-between text-gray-500">
                           <dt>
@@ -524,28 +524,28 @@ export default function OrderDetailPage() {
                           </dd>
                         </div>
                       )}
-                      
+
                       {safeGetNumber(displayOrder.globalDiscount) > 0 && (
                         <div className="flex justify-between text-green-600">
                           <dt>Global Discount {displayOrder.globalDiscountPercentage ? `(${displayOrder.globalDiscountPercentage}%)` : ''}</dt>
                           <dd>- Rs. {safeGetNumber(displayOrder.globalDiscount).toLocaleString()}</dd>
                         </div>
                       )}
-                      
+
                       {displayOrder.promoCode && safeGetNumber(displayOrder.promoDiscount) > 0 && (
                         <div className="flex justify-between text-green-600">
                           <dt>Promo Discount ({displayOrder.promoCode})</dt>
                           <dd>- Rs. {safeGetNumber(displayOrder.promoDiscount).toLocaleString()}</dd>
                         </div>
                       )}
-                      
+
                       {safeGetNumber(displayOrder.totalDiscount || displayOrder.discount) > 0 && (
                         <div className="flex justify-between text-green-600 font-medium">
                           <dt>Total Discount</dt>
                           <dd>- Rs. {safeGetNumber(displayOrder.totalDiscount || displayOrder.discount).toLocaleString()}</dd>
                         </div>
                       )}
-                      
+
                       <div className="pt-3 mt-1 border-t border-gray-200">
                         <div className="flex justify-between">
                           <dt className="text-base font-medium text-gray-900">Total</dt>
@@ -557,7 +557,7 @@ export default function OrderDetailPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Gift information if applicable */}
             {displayOrder.isGift && displayOrder.giftMessage && (
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -574,7 +574,7 @@ export default function OrderDetailPage() {
                 </div>
               </div>
             )}
-            
+
             {/* Order Timeline */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-200">
@@ -607,7 +607,7 @@ export default function OrderDetailPage() {
                         </div>
                       </div>
                     </li>
-                    
+
                     {currentStatus.toLowerCase() !== "pending" && (
                       <li>
                         <div className="relative pb-8">
@@ -634,7 +634,7 @@ export default function OrderDetailPage() {
                         </div>
                       </li>
                     )}
-                    
+
                     {(currentStatus.toLowerCase() === "dispatched" || currentStatus.toLowerCase() === "completed" || currentStatus.toLowerCase() === "complete") && (
                       <li>
                         <div className="relative pb-8">
@@ -664,7 +664,7 @@ export default function OrderDetailPage() {
                         </div>
                       </li>
                     )}
-                    
+
                     {(currentStatus.toLowerCase() === "completed" || currentStatus.toLowerCase() === "complete") && (
                       <li>
                         <div className="relative">
@@ -688,7 +688,7 @@ export default function OrderDetailPage() {
                         </div>
                       </li>
                     )}
-                    
+
                     {(currentStatus.toLowerCase() === "cancel" || currentStatus.toLowerCase() === "cancelled" || currentStatus.toLowerCase() === "canceled") && (
                       <li>
                         <div className="relative">
@@ -779,7 +779,7 @@ export default function OrderDetailPage() {
                       </div>
                       <p className="font-medium text-gray-900">{getCleanAddress()}</p>
                     </div>
-                    
+
                     {extractedArea && (
                       <div>
                         <div className="flex items-center mb-1">
@@ -796,7 +796,7 @@ export default function OrderDetailPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {displayOrder.nearestLandmark && (
                       <div>
                         <div className="flex items-center mb-1">
@@ -818,7 +818,7 @@ export default function OrderDetailPage() {
                     </div>
                   )
                 )}
-                
+
                 <div className="pt-2 border-t border-gray-100">
                   <div className="flex items-center mb-1">
                     <Store className="h-4 w-4 text-gray-500 mr-1.5" />
@@ -877,7 +877,7 @@ export default function OrderDetailPage() {
                     <p className="font-medium text-gray-900">{displayOrder.paymentInstructions}</p>
                   </div>
                 )}
-                
+
                 <div className="mt-2 pt-2 border-t border-gray-100">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-500">Payment Status</p>
@@ -891,25 +891,25 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </main>
-      
+
       <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 py-3 px-4 sm:px-6 lg:px-8 shadow-md">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/order" className="text-sm text-gray-600 hover:text-gray-900 flex items-center">
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back to Orders
           </Link>
-          
-          <div className="flex space-x-3">
-<a
-  href="https://api.whatsapp.com/send/?phone=923122754064"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
->
-  Chat on WhatsApp
-</a>
 
-            
+          <div className="flex space-x-3">
+            <a
+              href="https://api.whatsapp.com/send/?phone=923463332682"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Chat on WhatsApp
+            </a>
+
+
             <Link
               href="/"
               className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"

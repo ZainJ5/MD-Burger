@@ -9,10 +9,28 @@ export default function OrderHistory() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [error, setError] = useState(null);
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [branches, setBranches] = useState([]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await fetch("/api/branches");
+        if (res.ok) {
+          const data = await res.json();
+          setBranches(data);
+        }
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+      }
+    };
+
+    fetchBranches();
+  }, []);
 
   useEffect(() => {
     fetchOrderHistory();
-  }, [dateFilter, statusFilter, fromDate, toDate]);
+  }, [dateFilter, statusFilter, fromDate, toDate, branchFilter]);
 
   const formatLocalDatetime = (date) => {
     const pad = (n) => n.toString().padStart(2, '0');
@@ -23,6 +41,8 @@ export default function OrderHistory() {
     setLoading(true);
     try {
       let url = "/api/order-history";
+      const params = new URLSearchParams();
+      
       if (dateFilter === "Today" || dateFilter === "Custom") {
         let fromStr, toStr;
         if (dateFilter === "Today") {
@@ -38,8 +58,19 @@ export default function OrderHistory() {
           fromStr = fromDate;
           toStr = toDate;
         }
-        url += `?from=${fromStr}:00&to=${toStr}:59`;
+        params.append('from', `${fromStr}:00`);
+        params.append('to', `${toStr}:59`);
       }
+      
+      if (branchFilter !== "all") {
+        params.append('branchFilter', branchFilter);
+      }
+      
+      const queryString = params.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+      
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -110,7 +141,7 @@ export default function OrderHistory() {
 
   const handleDelete = async (orderId) => {
     const password = prompt("Enter password to delete order:");
-    if (password === "Delete@0077") {
+    if (password === "delete@tipu123") {
       try {
         const res = await fetch(`/api/orders/${orderId}`, { method: "DELETE" });
         if (res.ok) {
@@ -188,6 +219,22 @@ export default function OrderHistory() {
             {/* <option>Pending</option>
             <option>In-Process</option>
             <option>Dispatched</option> */}
+          </select>
+        </div>
+
+        <div className="flex items-center">
+          <span className="text-gray-700 mr-2 font-medium">Branch:</span>
+          <select
+            value={branchFilter}
+            onChange={(e) => setBranchFilter(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+          >
+            <option value="all">All Branches</option>
+            {branches.map((branch) => (
+              <option key={branch._id} value={branch._id}>
+                {branch.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>

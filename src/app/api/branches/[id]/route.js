@@ -5,6 +5,34 @@ import Category from "@/app/models/Category";
 import Subcategory from "@/app/models/Subcategory";
 import FoodItem from "@/app/models/FoodItem";
 
+export async function PATCH(request, { params }) {
+  try {
+    await connectDB();
+    const { id } = params;
+    const data = await request.json();
+
+    // If setting this branch as default, unset all other branches
+    if (data.isDefault === true) {
+      await Branch.updateMany({}, { isDefault: false });
+    }
+
+    const updatedBranch = await Branch.findByIdAndUpdate(
+      id,
+      data,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedBranch) {
+      return NextResponse.json({ message: "Branch not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedBranch, { status: 200 });
+  } catch (error) {
+    console.error("Error updating branch:", error);
+    return NextResponse.json({ message: "Failed to update branch" }, { status: 500 });
+  }
+}
+
 export async function DELETE(request, { params }) {
   try {
     await connectDB();

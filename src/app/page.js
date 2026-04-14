@@ -19,11 +19,13 @@ export default function Home() {
   const [items, setItems] = useState([]);
   const [visibleCategory, setVisibleCategory] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { branch } = useBranchStore();
+  const [currentBranchId, setCurrentBranchId] = useState(null); // Track which branch data is displayed
+  const { branch, branchVersion } = useBranchStore();
   const isInitialLoad = useRef(true);
+  const fetchVersionRef = useRef(0); // Track fetch operations
 
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/923122754064", "_blank");
+    window.open("https://wa.me/923463332682", "_blank");
   };
 
   const getId = (idField) => {
@@ -35,17 +37,36 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!branch) return;
+    if (!branch) {
+      // Clear data when no branch is selected
+      setCategories([]);
+      setSubcategories([]);
+      setItems([]);
+      setVisibleCategory(null);
+      setCurrentBranchId(null);
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
+    
+    const branchId = getId(branch);
+    const currentFetchVersion = ++fetchVersionRef.current; // Increment and capture version
+    const abortController = new AbortController();
 
     const fetchData = async () => {
       try {
         const [categoriesRes, subcategoriesRes, itemsRes] = await Promise.all([
-          fetch('/api/categories'),
-          fetch('/api/subcategories'),
-          fetch('/api/fooditems')
+          fetch('/api/categories', { signal: abortController.signal }),
+          fetch('/api/subcategories', { signal: abortController.signal }),
+          fetch('/api/fooditems', { signal: abortController.signal })
         ]);
+
+        // Check if this fetch is still valid BEFORE parsing data
+        if (currentFetchVersion !== fetchVersionRef.current) {
+          console.log('Branch changed during fetch, discarding stale response');
+          return;
+        }
 
         const [categoriesData, subcategoriesData, itemsData] = await Promise.all([
           categoriesRes.json(),
@@ -53,10 +74,22 @@ export default function Home() {
           itemsRes.json()
         ]);
 
+        // Double-check after parsing data
+        if (currentFetchVersion !== fetchVersionRef.current) {
+          console.log('Branch changed while parsing data, ignoring stale data');
+          return;
+        }
+
+        // Triple-check that the branch hasn't changed
+        if (getId(branch) !== branchId) {
+          console.log('Branch ID mismatch, ignoring stale data');
+          return;
+        }
+
         const filteredCategories = categoriesData.filter((cat) => {
           if (cat.branch) {
             const catBranch = typeof cat.branch === 'object' ? getId(cat.branch) : cat.branch;
-            return catBranch === getId(branch);
+            return catBranch === branchId;
           }
           return false;
         });
@@ -64,31 +97,63 @@ export default function Home() {
         const filteredSubcategories = subcategoriesData.filter((sub) => {
           if (sub.branch) {
             const subBranch = typeof sub.branch === 'object' ? getId(sub.branch) : sub.branch;
-            return subBranch === getId(branch);
+            return subBranch === branchId;
           }
           return false;
         });
 
+        const filteredItems = itemsData.filter((item) => {
+          if (item.branch) {
+            const itemBranch = typeof item.branch === 'object' ? getId(item.branch) : item.branch;
+            return itemBranch === branchId;
+          }
+          return false;
+        });
+
+        // Final check before setting state
+        if (currentFetchVersion !== fetchVersionRef.current) {
+          console.log('Branch changed before state update, aborting state update');
+          return;
+        }
+
+        // Update state atomically with the branch ID
+        setCurrentBranchId(branchId);
         setCategories(filteredCategories);
         setSubcategories(filteredSubcategories);
-        setItems(itemsData);
+        setItems(filteredItems);
         
         if (filteredCategories.length > 0) {
           setVisibleCategory(filteredCategories[0]);
+        } else {
+          setVisibleCategory(null);
         }
 
       } catch (error) {
+        if (error.name === 'AbortError') {
+          console.log('Fetch aborted due to branch change');
+          return;
+        }
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false);
-        isInitialLoad.current = false;
+        // Only update loading state if this is still the current fetch
+        if (currentFetchVersion === fetchVersionRef.current) {
+          setLoading(false);
+          isInitialLoad.current = false;
+        }
       }
     };
 
     fetchData();
-  }, [branch]);
+    
+    return () => {
+      abortController.abort();
+    };
+  }, [branch, branchVersion]); // Also depend on branchVersion to catch all branch changes
 
   const filteredItems = items;
+
+  // Safety check: ensure displayed data matches current branch
+  const isDataValid = branch && currentBranchId && getId(branch) === currentBranchId;
 
   const getSubcategoriesByCategory = (categoryId) => {
     return subcategories.filter((sub) => {
@@ -130,6 +195,16 @@ export default function Home() {
       <main className="min-h-screen bg-white text-black relative pb-0">
         <Hero />
         <Navbar />
+        
+        {/* Branch indicator for debugging */}
+        {branch && isDataValid && (
+          <div className="bg-gray-100 border-b border-gray-200 py-2 px-4 text-center">
+            <span className="text-sm text-gray-600">
+              Viewing menu for: <span className="font-semibold text-gray-900">{branch.name}</span>
+            </span>
+          </div>
+        )}
+        
         <MenuTabs 
           categories={categories} 
           visibleCategory={visibleCategory}
@@ -155,6 +230,11 @@ export default function Home() {
                 ))}
               </div>
             </div>
+          </div>
+        ) : !isDataValid ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+            <h2 className="text-2xl font-bold text-gray-700">Please select a branch</h2>
+            <p className="mt-4 text-gray-500">Choose your preferred location to view the menu.</p>
           </div>
         ) : (
           <div className="pt-4">
@@ -183,7 +263,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* WhatsApp Button */}
         <div className="fixed bottom-24 sm:bottom-6 right-6 z-[101]">
           <button
             onClick={handleWhatsAppClick}
@@ -198,7 +277,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Cart Button */}
         <CartButton />
 
         <div className="mt-10">

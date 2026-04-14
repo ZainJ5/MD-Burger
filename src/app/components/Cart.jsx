@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '../../store/cart'
 
-var ORDER_MINIMUMS = { DEFAULT: 0 };
+var ORDER_MINIMUMS = { DEFAULT: 500 };
 
 export default function CartDrawer({ isOpen, onClose }) {
   const router = useRouter();
@@ -255,7 +255,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                 <p>We Deliver Across Karachi</p>
                 <div className="flex items-center justify-center space-x-2">
                   <span className="text-green-600">✓</span>
-                  <span>From 06:00 pm to 1:30 am</span>
+                  <span>From 11:30 am to 3:30 am</span>
                 </div>
               </div>
             </div>

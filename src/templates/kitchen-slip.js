@@ -130,14 +130,6 @@ export default `<!DOCTYPE html>
       color: #000;
     }
 
-    .item-description {
-      font-size: 9px;
-      color: #333;
-      margin-top: 2px;
-      font-style: italic;
-      font-weight: normal;
-    }
-
     .header-row {
       background-color: #000;
       color: white;
@@ -180,7 +172,7 @@ export default `<!DOCTYPE html>
     </table>
 
     <div class="footer">
-      <div>KING ICE - KITCHEN SLIP</div>
+      <div>Tipu Burger & Broast</div>
     </div>
   </div>
 

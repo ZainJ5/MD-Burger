@@ -5,24 +5,51 @@ import { FaEdit, FaTrash, FaToggleOn, FaToggleOff } from "react-icons/fa";
 
 export default function DeliveryAreasManager() {
   const [areas, setAreas] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [name, setName] = useState("");
   const [fee, setFee] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [filterBranch, setFilterBranch] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [editName, setEditName] = useState("");
   const [editFee, setEditFee] = useState("");
+  const [editBranch, setEditBranch] = useState("");
   const [editIsActive, setEditIsActive] = useState(true);
   const [editingArea, setEditingArea] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    fetchBranches();
     fetchAreas();
   }, []);
+
+  useEffect(() => {
+    fetchAreas();
+  }, [filterBranch]);
+
+  const fetchBranches = async () => {
+    try {
+      const res = await fetch("/api/branches");
+      if (res.ok) {
+        const data = await res.json();
+        setBranches(data);
+      } else {
+        toast.error("Failed to fetch branches");
+      }
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+      toast.error("Error fetching branches");
+    }
+  };
 
   const fetchAreas = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/delivery-areas");
+      const url = filterBranch 
+        ? `/api/delivery-areas?branchId=${filterBranch}`
+        : "/api/delivery-areas";
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setAreas(data);
@@ -43,12 +70,22 @@ export default function DeliveryAreasManager() {
       toast.error("Please enter a valid name and fee");
       return;
     }
+    
+    if (!selectedBranch) {
+      toast.error("Please select a branch");
+      return;
+    }
 
     setIsLoading(true);
     try {
       const url = "/api/delivery-areas";
       const method = "POST";
-      const body = JSON.stringify({ name, fee: Number(fee), isActive });
+      const body = JSON.stringify({ 
+        name, 
+        fee: Number(fee), 
+        branch: selectedBranch,
+        isActive 
+      });
 
       const res = await fetch(url, {
         method,
@@ -60,6 +97,7 @@ export default function DeliveryAreasManager() {
         toast.success(`Delivery area added successfully`);
         setName("");
         setFee("");
+        setSelectedBranch("");
         setIsActive(true);
         fetchAreas();
       } else {
@@ -80,12 +118,23 @@ export default function DeliveryAreasManager() {
       toast.error("Please enter a valid name and fee");
       return;
     }
+    
+    if (!editBranch) {
+      toast.error("Please select a branch");
+      return;
+    }
 
     setIsLoading(true);
     try {
       const url = "/api/delivery-areas";
       const method = "PUT";
-      const body = JSON.stringify({ _id: editingArea._id, name: editName, fee: Number(editFee), isActive: editIsActive });
+      const body = JSON.stringify({ 
+        _id: editingArea._id, 
+        name: editName, 
+        fee: Number(editFee), 
+        branch: editBranch,
+        isActive: editIsActive 
+      });
 
       const res = await fetch(url, {
         method,
@@ -142,6 +191,7 @@ export default function DeliveryAreasManager() {
     setEditingArea(area);
     setEditName(area.name);
     setEditFee(area.fee.toString());
+    setEditBranch(area.branch?._id || area.branch);
     setEditIsActive(area.isActive !== false); 
     setIsModalOpen(true);
   };
@@ -155,7 +205,8 @@ export default function DeliveryAreasManager() {
         body: JSON.stringify({ 
           _id: area._id, 
           name: area.name, 
-          fee: area.fee, 
+          fee: area.fee,
+          branch: area.branch?._id || area.branch,
           isActive: !area.isActive 
         }),
       });
@@ -183,11 +234,45 @@ export default function DeliveryAreasManager() {
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">Manage Delivery Areas</h3>
+      
+      {/* Filter by Branch */}
+      <div className="bg-gray-50 p-4 rounded-lg mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Branch</label>
+        <select
+          value={filterBranch}
+          onChange={(e) => setFilterBranch(e.target.value)}
+          className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+        >
+          <option value="">All Branches</option>
+          {branches.map((branch) => (
+            <option key={branch._id} value={branch._id}>
+              {branch.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-lg font-semibold mb-4">
           Add New Delivery Area
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Branch <span className="text-red-500">*</span></label>
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+              required
+            >
+              <option value="">Select Branch</option>
+              {branches.map((branch) => (
+                <option key={branch._id} value={branch._id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Area Name</label>
             <input
@@ -250,6 +335,7 @@ export default function DeliveryAreasManager() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-100">
+                  <th className="px-4 py-2 text-left">Branch</th>
                   <th className="px-4 py-2 text-left">Name</th>
                   <th className="px-4 py-2 text-left">Fee</th>
                   <th className="px-4 py-2 text-left">Status</th>
@@ -259,6 +345,9 @@ export default function DeliveryAreasManager() {
               <tbody>
                 {areas.map((area) => (
                   <tr key={area._id} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      {area.branch?.name || <span className="text-red-500 text-xs">No Branch</span>}
+                    </td>
                     <td className="px-4 py-3">{area.name}</td>
                     <td className="px-4 py-3">Rs. {area.fee}</td>
                     <td className="px-4 py-3">
@@ -307,10 +396,26 @@ export default function DeliveryAreasManager() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full">
             <h2 className="text-lg font-semibold mb-4">Edit Delivery Area</h2>
             <form onSubmit={handleUpdate}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch <span className="text-red-500">*</span></label>
+                  <select
+                    value={editBranch}
+                    onChange={(e) => setEditBranch(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+                    required
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map((branch) => (
+                      <option key={branch._id} value={branch._id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Area Name</label>
                   <input

@@ -7,8 +7,8 @@ import { SocketProvider } from './context/SocketContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'King Ice Restaurant - Landhi Branch',
-  description: 'King Ice offers an exclusive range of Fast Foot | BBQ and Ice Cream at Korangi and Landi Town.',
+  title: 'Tipu Burger & Broast',
+  description: `The best food in Town! Established in 1993. At the time of opening we started with the bun kabab's but now we have opened the complete FAST FOOD and BAR-B-Q.`,
 }
 
 export default function RootLayout({ children }) {

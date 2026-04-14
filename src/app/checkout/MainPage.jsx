@@ -1194,7 +1194,7 @@ const handlePlaceOrder = async () => {
                 </div>
               )}
               
-              <div className="mb-6 p-4 border border-gray-200 sm:overflow-hidden overflow-y-scroll rounded-md bg-gray-50">
+              <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
                 <div className="flex items-center mb-3">
                   <FaTag className="text-red-500 mr-2" />
                   <span className="font-medium">Promo Code</span>
@@ -1320,7 +1320,7 @@ const handlePlaceOrder = async () => {
               {!isSiteActive && (
                 <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-md text-center">
                   {/* <p className="font-medium">Service Unavailable</p> */}
-                  <p className="text-sm">Order time is 6:00pm to 1:45 am. Please make orders during opening hours.</p>
+                  <p className="text-sm">Order time is 11:30 am to 3:30 am. Please make orders during opening hours.</p>
                 </div>
               )}
               

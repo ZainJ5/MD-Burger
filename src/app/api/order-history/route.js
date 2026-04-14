@@ -8,6 +8,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const from = searchParams.get("from");
     const to = searchParams.get("to");
+    const branchFilter = searchParams.get("branchFilter");
 
     const query = { status: { $in: ['Complete', 'Cancel'] } };
     if (from || to) {
@@ -18,6 +19,11 @@ export async function GET(req) {
       if (to) {
         query.createdAt.$lte = new Date(`${to}+05:00`);
       }
+    }
+
+    // Add branch filter if provided
+    if (branchFilter && branchFilter !== "all") {
+      query.branch = branchFilter;
     }
 
     const orders = await Order.find(query)

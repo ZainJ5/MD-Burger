@@ -37,6 +37,8 @@ export default function FoodItemList() {
   const [subcategories, setSubcategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [filteredSubcategories, setFilteredSubcategories] = useState([]);
+  const [filterCategoriesForDisplay, setFilterCategoriesForDisplay] = useState([]);
+  const [filterSubcategoriesForDisplay, setFilterSubcategoriesForDisplay] = useState([]);
 
   useEffect(() => {
     fetchBranches();
@@ -70,6 +72,56 @@ export default function FoodItemList() {
       setFilteredSubcategories([]);
     }
   }, [editData.category, subcategories]);
+
+  // Filter categories for the main filter based on selected branch
+  useEffect(() => {
+    if (filters.branch) {
+      const filtered = categories.filter((cat) => {
+        const catBranchId =
+          typeof cat.branch === "object" && cat.branch !== null
+            ? extractValue(cat.branch._id)
+            : extractValue(cat.branch);
+        return catBranchId === filters.branch;
+      });
+      setFilterCategoriesForDisplay(filtered);
+    } else {
+      setFilterCategoriesForDisplay(categories);
+    }
+  }, [filters.branch, categories]);
+
+  // Filter subcategories for the main filter based on selected category
+  useEffect(() => {
+    if (filters.category) {
+      const filtered = subcategories.filter((sub) => {
+        const subCategoryId =
+          typeof sub.category === "object" && sub.category !== null
+            ? extractValue(sub.category._id)
+            : extractValue(sub.category);
+        return subCategoryId === filters.category;
+      });
+      setFilterSubcategoriesForDisplay(filtered);
+    } else if (filters.branch) {
+      // If branch is selected but not category, show subcategories for all categories in that branch
+      const branchCategories = categories.filter((cat) => {
+        const catBranchId =
+          typeof cat.branch === "object" && cat.branch !== null
+            ? extractValue(cat.branch._id)
+            : extractValue(cat.branch);
+        return catBranchId === filters.branch;
+      });
+      const branchCategoryIds = branchCategories.map((cat) => extractValue(cat._id));
+      const filtered = subcategories.filter((sub) => {
+        const subCategoryId =
+          typeof sub.category === "object" && sub.category !== null
+            ? extractValue(sub.category._id)
+            : extractValue(sub.category);
+        return branchCategoryIds.includes(subCategoryId);
+      });
+      setFilterSubcategoriesForDisplay(filtered);
+    } else {
+      setFilterSubcategoriesForDisplay(subcategories);
+    }
+  }, [filters.category, filters.branch, subcategories, categories]);
 
   const fetchBranches = async () => {
     try {
@@ -232,20 +284,31 @@ export default function FoodItemList() {
     const { branch, category, subcategory, search } = filters;
 
     if (branch) {
-      filtered = filtered.filter(
-        (item) => extractValue(item.branch?._id || item.branch) === branch
-      );
+      filtered = filtered.filter((item) => {
+        const branchId =
+          typeof item.branch === "object" && item.branch !== null
+            ? extractValue(item.branch._id)
+            : extractValue(item.branch);
+        return branchId === branch;
+      });
     }
     if (category) {
-      filtered = filtered.filter(
-        (item) => extractValue(item.category?._id || item.category) === category
-      );
+      filtered = filtered.filter((item) => {
+        const categoryId =
+          typeof item.category === "object" && item.category !== null
+            ? extractValue(item.category._id)
+            : extractValue(item.category);
+        return categoryId === category;
+      });
     }
     if (subcategory) {
-      filtered = filtered.filter(
-        (item) =>
-          extractValue(item.subcategory?._id || item.subcategory) === subcategory
-      );
+      filtered = filtered.filter((item) => {
+        const subcategoryId =
+          typeof item.subcategory === "object" && item.subcategory !== null
+            ? extractValue(item.subcategory._id)
+            : extractValue(item.subcategory);
+        return subcategoryId === subcategory;
+      });
     }
     if (search) {
       const searchLower = search.toLowerCase();
@@ -261,7 +324,16 @@ export default function FoodItemList() {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    
+    if (name === "branch") {
+      // Reset category and subcategory when branch changes
+      setFilters((prev) => ({ ...prev, branch: value, category: "", subcategory: "" }));
+    } else if (name === "category") {
+      // Reset subcategory when category changes
+      setFilters((prev) => ({ ...prev, category: value, subcategory: "" }));
+    } else {
+      setFilters((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const resetFilters = () => {
@@ -667,7 +739,7 @@ export default function FoodItemList() {
             className="flex-1 py-2 px-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all duration-300"
           >
             <option value="">All Categories</option>
-            {categories.map((category) => (
+            {filterCategoriesForDisplay.map((category) => (
               <option key={extractValue(category._id)} value={extractValue(category._id)}>
                 {category.name}
               </option>
@@ -680,7 +752,7 @@ export default function FoodItemList() {
             className="flex-1 py-2 px-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all duration-300"
           >
             <option value="">All Subcategories</option>
-            {subcategories.map((subcategory) => (
+            {filterSubcategoriesForDisplay.map((subcategory) => (
               <option key={extractValue(subcategory._id)} value={extractValue(subcategory._id)}>
                 {subcategory.name}
               </option>

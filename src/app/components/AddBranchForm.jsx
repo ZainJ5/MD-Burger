@@ -61,6 +61,32 @@ export default function BranchManager() {
     setDeleteConfirmation(null);
   };
 
+  const toggleDefault = async (branch) => {
+    try {
+      const newDefaultStatus = !branch.isDefault;
+      
+      const response = await fetch(`/api/branches/${branch._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isDefault: newDefaultStatus }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update branch");
+      
+      await fetchBranches();
+      toast.success(
+        newDefaultStatus 
+          ? `${branch.name} set as default branch` 
+          : `${branch.name} removed as default branch`
+      );
+    } catch (error) {
+      console.error("Error updating branch:", error);
+      toast.error("Failed to update branch");
+    }
+  };
+
   const deleteBranch = async (id) => {
     try {
       const response = await fetch(`/api/branches/${id}`, {
@@ -129,6 +155,9 @@ export default function BranchManager() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Branch Name
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -140,7 +169,24 @@ export default function BranchManager() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{branch.name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {branch.isDefault && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Default
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right space-x-3">
+                      <button
+                        onClick={() => toggleDefault(branch)}
+                        className={`${
+                          branch.isDefault 
+                            ? "text-gray-600 hover:text-gray-800" 
+                            : "text-blue-600 hover:text-blue-800"
+                        } text-sm font-medium`}
+                      >
+                        {branch.isDefault ? "Remove Default" : "Set as Default"}
+                      </button>
                       <button
                         onClick={() => confirmDelete(branch)}
                         className="text-red-600 hover:text-red-800 text-sm font-medium"

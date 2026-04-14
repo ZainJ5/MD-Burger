@@ -16,14 +16,14 @@ export default function ReturnsRefundsPolicyPage() {
           <section className="p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-semibold mb-4">INTRODUCTION</h2>
             <p className="text-gray-700 leading-relaxed">
-              Please read through our Return Policy on this page to understand our return procedures and make sure your item is eligible for return. You will have 7 days after an item is delivered to you to notify us that you want to return the item. This means if your item was delivered e.g. on the 5th of the month, you have till the 12th to initiate a return. If the item you wish to return meets the criteria mentioned below, your return can be initiated by calling our helpline at <strong>0336 0223688 or 03122754064</strong> which is available 24/7.
+              Please read through our Return Policy on this page to understand our return procedures and make sure your item is eligible for return. You will have 7 days after an item is delivered to you to notify us that you want to return the item. This means if your item was delivered e.g. on the 5th of the month, you have till the 12th to initiate a return. If the item you wish to return meets the criteria mentioned below, your return can be initiated by calling our helpline at <strong>+923463332682 or +923332245706</strong> which is available 24/7.
             </p>
           </section>
 
           <section className="p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-semibold mb-4">How to Request a Return?</h2>
             <p className="text-gray-700 leading-relaxed">
-              You can request to initiate a return by contacting our helpline at <strong>03360223688 or 03122754064</strong> to confirm that your product is eligible for return. We will explain to you the return procedure and confirm the nearest service provider location where you can drop off the product. Please be prepared to give the following pieces of information: <em>Your order number</em> and <em>The reason for the return</em>, along with the method of refund you prefer and the necessary associated information (bank account number, etc.).
+              You can request to initiate a return by contacting our helpline at <strong>+923463332682 or +923332245706</strong> to confirm that your product is eligible for return. We will explain to you the return procedure and confirm the nearest service provider location where you can drop off the product. Please be prepared to give the following pieces of information: <em>Your order number</em> and <em>The reason for the return</em>, along with the method of refund you prefer and the necessary associated information (bank account number, etc.).
             </p>
           </section>
 

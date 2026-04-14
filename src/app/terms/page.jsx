@@ -18,7 +18,7 @@ export default function TermsAndConditionsPage() {
           <section className="p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-semibold mb-4">INTRODUCTION</h2>
             <p className="text-gray-700 leading-relaxed">
-              King Ice Restaurant welcomes you to one of the largest online shopping portals in Pakistan. These terms and conditions (“Terms and Conditions”) apply not only to the Site, but also to all subsidiaries, divisions, and affiliate-operated websites referencing these Terms and Conditions. Your access to the Site is subject to your understanding and acceptance of these Terms and Conditions. Please discontinue use if you do not accept them. The Site reserves the right to add, remove, change, or modify any clause at any time without prior notice. Changes become effective upon posting. Users are advised to check these Terms and Conditions regularly. Continuing to use the Site after changes constitutes acceptance of the revised Terms and Conditions.
+              Tipu Burger and Broast welcomes you to one of the largest online shopping portals in Pakistan. These terms and conditions (“Terms and Conditions”) apply not only to the Site, but also to all subsidiaries, divisions, and affiliate-operated websites referencing these Terms and Conditions. Your access to the Site is subject to your understanding and acceptance of these Terms and Conditions. Please discontinue use if you do not accept them. The Site reserves the right to add, remove, change, or modify any clause at any time without prior notice. Changes become effective upon posting. Users are advised to check these Terms and Conditions regularly. Continuing to use the Site after changes constitutes acceptance of the revised Terms and Conditions.
             </p>
           </section>
 
@@ -45,8 +45,8 @@ export default function TermsAndConditionsPage() {
 
           <section className="p-6 rounded-lg shadow-sm">
             <h2 className="text-2xl font-semibold mb-4">PAYMENTS PROCEDURE</h2>
-            <p className="text-gray-700 leading-relaxed">
-              You can choose Pay on Delivery for orders below Rs. 50,000. For orders above Rs. 50,000, the full amount must be paid online via credit card. For delivery, contact us at 0336 0223688 or 03122754064.
+            <p className="text-gray-70-relaxed">
+              You can choose Pay on Delivery for orders below Rs. 50,000. For orders above Rs. 50,000, the full amount must be paid online via credit card.
             </p>
           </section>
 

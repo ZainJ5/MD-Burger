@@ -8,7 +8,7 @@ import Image from 'next/image';
 export default function Login() {
   const router = useRouter();
   const predefinedUsername = "admin";
-  const predefinedPassword = "admin123";
+  const predefinedPassword = "admin@tipu123";
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -58,13 +58,13 @@ export default function Login() {
       <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-md transform transition-all hover:shadow-xl">
         <div className="flex justify-center mb-6">
           {!isLogoLoading && (
-            <Image
-              src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`}
-              alt="Restaurant Logo"
-              width={120}
-              height={120}
-              className="object-contain"
-            />
+            <img
+  src={`${logoData.logo || "/logo.png"}?v=${getLogoTimestamp()}`}
+  alt="Restaurant Logo"
+  width={120}
+  height={120}
+  className="object-contain"
+/>
           )}
         </div>
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">

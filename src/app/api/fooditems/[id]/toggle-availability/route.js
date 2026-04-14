@@ -6,8 +6,9 @@ export async function PATCH(request, { params }) {
   try {
     await connectDB();
     
+    // FIX: Await params before using the ID
     const { id } = await params;
-    
+
     const formData = await request.formData();
     const isAvailable = formData.get("isAvailable") === 'true';
 

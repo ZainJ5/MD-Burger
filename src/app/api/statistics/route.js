@@ -31,6 +31,7 @@ export async function GET(req) {
     const period = searchParams.get("period"); 
     const from = searchParams.get("from");
     const to = searchParams.get("to");
+    const branchFilter = searchParams.get("branchFilter");
 
     let startDate;
     let endDate = new Date();
@@ -64,6 +65,11 @@ export async function GET(req) {
     const query = { createdAt: { $gte: startDate } };
     if (from && to) {
       query.createdAt.$lte = endDate;
+    }
+
+    // Add branch filter if provided
+    if (branchFilter && branchFilter !== "all") {
+      query.branch = branchFilter;
     }
 
     const orders = await Order.find(query).lean();
@@ -91,6 +97,7 @@ export async function POST(req) {
     const period = body.period;
     const from = body.from;
     const to = body.to;
+    const branchFilter = body.branchFilter;
 
     let startDate;
     let endDate = new Date();
@@ -124,6 +131,11 @@ export async function POST(req) {
     const query = { createdAt: { $gte: startDate } };
     if (from && to) {
       query.createdAt.$lte = endDate;
+    }
+
+    // Add branch filter if provided
+    if (branchFilter && branchFilter !== "all") {
+      query.branch = branchFilter;
     }
 
     const orders = await Order.find(query).lean();

@@ -213,8 +213,7 @@ export default `<!DOCTYPE html>
 <body>
   <div class="receipt-container">
     <div class="header">
-      <div class="restaurant-name">KING ICE FAST FOOD</div>
-      <div class="restaurant-info">Landhi 3 1/2 SNTN 5609626-7</div>
+      <div class="restaurant-name">Tipu Burger & Broast</div>
     </div>
 
     <div class="title-container">

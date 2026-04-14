@@ -3,12 +3,14 @@ import Image from 'next/image'
 import { MapPin, Phone, ChevronDown, ClipboardList } from 'lucide-react'
 import HeaderCartIcon from './HeaderCartIcon' 
 import { useBranchStore } from '../../store/branchStore' 
+import { useCartStore } from '../../store/cart'
 import Link from 'next/link'
 
 function Header() {
   const [logo, setLogo] = useState('/logo/logo-1753880016916.png')
   const [branches, setBranches] = useState([])
   const { branch, setBranch } = useBranchStore()
+  const { clearCart } = useCartStore()
   const [loading, setLoading] = useState(true)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
@@ -32,18 +34,17 @@ function Header() {
         if (!response.ok) throw new Error('Failed to fetch branches')
         const data = await response.json()
         setBranches(data)
-        
+        // Set default branch or first branch if no branch is selected
         if (!branch && data && data.length > 0) {
-          setBranch(data[0])
+          const defaultBranch = data.find(b => b.isDefault)
+          setBranch(defaultBranch || null)
         }
       } catch (err) {
         console.error('Error fetching branches:', err)
       } finally {
         setLoading(false)
       }
-    }
-
-    // Check if orders exist in localStorage
+    }    // Check if orders exist in localStorage
     const checkOrderHistory = () => {
       const orderHistory = localStorage.getItem('orderHistory')
       if (orderHistory && JSON.parse(orderHistory).length > 0) {
@@ -70,8 +71,11 @@ function Header() {
   }, [])
 
   const handleBranchChange = (selectedBranch) => {
+    clearCart()
     setBranch(selectedBranch) 
     setDropdownOpen(false)
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -122,15 +126,15 @@ function Header() {
           )}
 
           <a 
-            href={`tel:${branch?.phone || '03122754064'}`}
+            href={`tel:${branch?.phone || '021 - 111 822 111'}`}
             className="hidden sm:flex items-center bg-black text-white rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm"
           >
             <Phone className="h-4 w-4 sm:h-5 w-5 mr-1 text-white" />
-            <span className="font-medium text-xs sm:text-sm">{branch?.phone || '03122754064'}</span>
+            <span className="font-medium text-xs sm:text-sm">{branch?.phone || '021 - 111 822 111'}</span>
           </a>
         </div>
 
-        <div className="absolute left-1/2 transform -translate-x-1/2 sm:top-0 top-[26px] z-10">
+        <div className="absolute left-1/2 transform -translate-x-1/2 sm:top-0 top-[0px] z-10">
           <div className="bg-white rounded-full p-2 sm:w-28 sm:h-28 w-20 h-20 flex items-center justify-center shadow-md">
             <img 
               src={logo}
@@ -153,11 +157,11 @@ function Header() {
           )}
           
           <a 
-            href={`tel:${branch?.phone || '03122754064'}`}
+            href={`tel:${branch?.phone || '021 - 111 822 111'}`}
             className="flex sm:hidden items-center bg-black text-white rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm"
           >
             <Phone className="h-4 w-4 sm:h-5 w-5 mr-1 text-white" />
-            <span className="font-medium text-xs sm:text-sm">{branch?.phone || '03122754064'}</span>
+            <span className="font-medium text-xs sm:text-sm">{branch?.phone || '021 - 111 822 111'}</span>
           </a>
           
           {/* Desktop Header Cart Icon */}
@@ -277,7 +281,7 @@ export default function Hero() {
       <Header />
 
       <div
-        className="relative w-full aspect-[750/250] sm:aspect-[16/5] overflow-hidden"
+        className="relative w-full aspect-[750/250] sm:aspect-[16/6] overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

@@ -548,7 +548,7 @@ const printKitchenSlip = useCallback(async (order) => {
     
     let descriptionHtml = '';
     if (item.description && item.description.trim() !== '') {
-      descriptionHtml = `<div class="item-description" style="font-size: 9px; color: #333; margin-top: 2px; font-style: italic; font-weight: normal !important;">${item.description}</div>`;
+      descriptionHtml = `<div class="item-description" style="font-size: 9px; color: #333; margin-top: 2px; font-style: italic;">${item.description}</div>`;
     }
 
     let modifiersHtml = '';

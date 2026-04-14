@@ -141,8 +141,8 @@ export default function Footer() {
                   {footerData.contact.uanNumber}
                 </a> 
                 <span>/</span>
-                <a href={`tel:03122754064`} className="font-bold text-black hover:underline">
-                  0312 2754064
+                <a href={`tel:03332245706`} className="font-bold text-black hover:underline">
+                  0333 2245706
                 </a>
                 </div>
               </p>

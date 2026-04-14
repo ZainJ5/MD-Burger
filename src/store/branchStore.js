@@ -3,5 +3,9 @@ import { create } from "zustand";
 
 export const useBranchStore = create((set) => ({
   branch: null,
-  setBranch: (newBranch) => set({ branch: newBranch }),
+  branchVersion: 0, 
+  setBranch: (newBranch) => set((state) => ({ 
+    branch: newBranch,
+    branchVersion: state.branchVersion + 1 
+  })),
 }));

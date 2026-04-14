@@ -5,7 +5,7 @@ import Branch from "@/app/models/Branch";
 export async function GET() {
   try {
     await connectDB();
-    const branches = await Branch.find({});
+    const branches = await Branch.find({}).sort({ isDefault: -1, createdAt: 1 });
     return NextResponse.json(branches, { status: 200 });
   } catch (error) {
     console.error("Error fetching branches:", error);

@@ -9,6 +9,7 @@ export default function MenuSection({ category, subcategories, items, onSectionV
   const sectionRef = useRef(null);
   const { setActiveCategory, setActiveCategoryName } = useMenuStore();
   const imageCache = useRef(new Map());
+  const [isMounted, setIsMounted] = useState(false);
   
   const getId = (idField) => {
     if (typeof idField === 'object' && idField !== null) {
@@ -17,6 +18,12 @@ export default function MenuSection({ category, subcategories, items, onSectionV
     }
     return idField;
   };
+
+  // Track mount state
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
 
   const getCacheBustedUrl = (url) => {
     if (!url) return "";

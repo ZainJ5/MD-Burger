@@ -13,20 +13,47 @@ export default function Statistics() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [filterType, setFilterType] = useState("all"); // 'all', 'completed', 'canceled'
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [branches, setBranches] = useState([]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await fetch("/api/branches");
+        if (res.ok) {
+          const data = await res.json();
+          setBranches(data);
+        }
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+      }
+    };
+
+    fetchBranches();
+  }, []);
 
   const fetchStatistics = async () => {
     try {
       setLoading(true);
       let url = `/api/statistics`;
+      const params = new URLSearchParams();
+      
       if (period === "custom") {
         if (!fromDate || !toDate) {
           setLoading(false);
           return;
         }
-        url += `?from=${fromDate}:00&to=${toDate}:59`;
+        params.append('from', `${fromDate}:00`);
+        params.append('to', `${toDate}:59`);
       } else {
-        url += `?period=${period}`;
+        params.append('period', period);
       }
+      
+      if (branchFilter !== "all") {
+        params.append('branchFilter', branchFilter);
+      }
+      
+      url += `?${params.toString()}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
       const responseData = await res.json();
@@ -40,7 +67,7 @@ export default function Statistics() {
 
   useEffect(() => {
     fetchStatistics();
-  }, [period]);
+  }, [period, branchFilter]);
 
   const filteredOrders = useMemo(() => {
     if (!data || !data.orders) return [];
@@ -350,6 +377,19 @@ export default function Statistics() {
             <option value="all">All Orders</option>
             <option value="completed">Completed Only</option>
             <option value="canceled">Canceled Only</option>
+          </select>
+
+          <select
+            value={branchFilter}
+            onChange={(e) => setBranchFilter(e.target.value)}
+            className="border rounded-md px-3 py-2 text-sm"
+          >
+            <option value="all">All Branches</option>
+            {branches.map((branch) => (
+              <option key={branch._id} value={branch._id}>
+                {branch.name}
+              </option>
+            ))}
           </select>
 
           <button
