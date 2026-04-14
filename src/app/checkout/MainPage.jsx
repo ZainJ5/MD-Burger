@@ -1320,7 +1320,7 @@ const handlePlaceOrder = async () => {
               {!isSiteActive && (
                 <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-md text-center">
                   {/* <p className="font-medium">Service Unavailable</p> */}
-                  <p className="text-sm">Order time is 11:30 am to 3:30 am. Please make orders during opening hours.</p>
+                  <p className="text-sm">Order time is 05:00 PM to 3:00 AM. Please make orders during opening hours.</p>
                 </div>
               )}
               

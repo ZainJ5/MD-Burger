@@ -176,7 +176,7 @@ function Header() {
 
 export default function Hero() {
   const [heroData, setHeroData] = useState({
-    banners: ['Welcome to Tipu Burger & Broast'],
+    banners: ['Welcome to MD Burger & Broast'],
     images: ['/hero.jpg'],
     settings: {
       bannerRotationSpeed: 3000,

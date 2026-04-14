@@ -65,7 +65,7 @@ export async function GET() {
     if (!heroData) {
       return NextResponse.json({
         banners: [
-          'Welcome to Tipu Burger & Broast',
+          'Welcome to MD Burger & Broast',
           'Flat 10% Off on all Items',
           'Discover Our Special Dishes',
         ],

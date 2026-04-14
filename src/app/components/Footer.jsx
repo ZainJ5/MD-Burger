@@ -9,7 +9,7 @@ import 'swiper/css'
 export default function Footer() {
   const [footerData, setFooterData] = useState({
     restaurant: {
-      name: "Tipu Burger & Broast",
+      name: "MD Burger & Broast",
       address: "Clifton Center، Shop No 1, Clifton Shopping Arcade، Bank Road, Block 5 Clifton, Karachi, 75600",
       description: "The best food in Town! Established in 1993. At the time of opening we started with the bun kabab's but now we have opened the complete FAST FOOD and BAR-B-Q. Just all pure are being used here.",
       establishedYear: 1993,
@@ -17,8 +17,8 @@ export default function Footer() {
     },
     contact: {
       uanNumber: "021 - 111 822 111",
-      whatsappNumbers: ["0333 2245706", "0346 3332682"],
-      openingHours: "11:30 am to 3:30 am"
+      whatsappNumbers: ["+92 345 5820200"],
+      openingHours: "05:00 PM to 3:00 AM"
     },
     appLinks: {
       appStore: "https://restaurant-website-pi-rouge.vercel.app/",

@@ -7,19 +7,19 @@ import "react-toastify/dist/ReactToastify.css";
 export default function NavbarEditor() {
   const [navbarData, setNavbarData] = useState({
     restaurant: {
-      name: "Tipu Burger & Broast",
-      openingHours: "11:30 am to 3:30 am"
+      name: "MD Burger & Broast",
+      openingHours: "05:00 PM to 3:00 AM"
     },
     delivery: {
       time: "30-45 mins",
       minimumOrder: "Rs. 500 Only"
     },
     socialLinks: [
-      { platform: "menu", icon: "/download.webp", isMenu: true, menuFile: "/tipu-menu-update-feb-25.pdf" },
-      { platform: "whatsapp", icon: "/whatsapp-logo.webp", url: "https://wa.me/923332245706" },
+      { platform: "menu", icon: "/download.webp", isMenu: true, menuFile: "/md-menu.pdf" },
+      { platform: "whatsapp", icon: "/whatsapp-logo.webp", url: "https://wa.me/923455820200" },
       { platform: "phone", icon: "/phone.webp", url: "tel:+92111822111" },
-      { platform: "facebook", icon: "/facebook.webp", url: "https://www.facebook.com/tipuburgerbroast" },
-      { platform: "tiktok", icon: "/instagram.png", url: "https://www.tiktok.com/tipuburger" }
+      { platform: "facebook", icon: "/facebook.webp", url: "https://www.facebook.com/mdburgerbroast" },
+      { platform: "tiktok", icon: "/instagram.png", url: "https://www.tiktok.com/mdburger" }
     ],
     updatedAt: new Date()
   });

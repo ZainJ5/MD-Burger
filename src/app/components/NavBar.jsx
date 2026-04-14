@@ -8,8 +8,8 @@ export default function Navbar() {
   const [isLogoLoading, setIsLogoLoading] = useState(true);
   const [navbarData, setNavbarData] = useState({
     restaurant: {
-      name: "Tipu Burger & Broast",
-      openingHours: "11:30 am to 3:30 am"
+      name: "MD Burger & Broast",
+      openingHours: "05:00 PM to 3:00 AM"
     },
     delivery: {
       time: "30-45 mins",

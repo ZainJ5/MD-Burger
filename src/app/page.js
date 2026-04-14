@@ -25,7 +25,7 @@ export default function Home() {
   const fetchVersionRef = useRef(0); // Track fetch operations
 
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/923463332682", "_blank");
+    window.open("https://wa.me/923455820200", "_blank");
   };
 
   const getId = (idField) => {

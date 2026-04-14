@@ -172,7 +172,7 @@ export default `<!DOCTYPE html>
     </table>
 
     <div class="footer">
-      <div>Tipu Burger & Broast</div>
+      <div>MD Burger & Broast</div>
     </div>
   </div>
 

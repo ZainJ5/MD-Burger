@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function HeroEditor() {
   const [heroData, setHeroData] = useState({
-    banners: ['Welcome to Tipu Burger & Broast', 'Flat 10% Off on all Items', 'Discover Our Special Dishes'],
+    banners: ['Welcome to MD Burger & Broast', 'Flat 10% Off on all Items', 'Discover Our Special Dishes'],
     images: [],
     settings: {
       bannerRotationSpeed: 3000,
