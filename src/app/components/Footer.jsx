@@ -140,10 +140,10 @@ export default function Footer() {
                 <a href={`tel:${footerData.contact.uanNumber}`} className="font-bold text-black hover:underline">
                   {footerData.contact.uanNumber}
                 </a> 
-                <span>/</span>
+                {/* <span>/</span>
                 <a href={`tel:03332245706`} className="font-bold text-black hover:underline">
                   0333 2245706
-                </a>
+                </a> */}
                 </div>
               </p>
             </div>
@@ -282,7 +282,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between text-sm text-white space-y-4 sm:space-y-0">
             <p>
-              © 2006 {footerData.restaurant.name}. All Rights Reserved. Develop by{" "}
+              © 2003 {footerData.restaurant.name}. All Rights Reserved. Develop by{" "}
               <a
                 href={`https://wa.me/${footerData.developer.contact?.replace(/[^0-9]/g, '')}`}
                 target="_blank"

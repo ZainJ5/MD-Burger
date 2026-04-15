@@ -70,8 +70,8 @@ export default function CartDrawer({ isOpen, onClose }) {
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #dce3f5; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3a56a6; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2e4585; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #33449b; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #28367b; }
       `}</style>
 
       <div className="flex flex-col h-full">

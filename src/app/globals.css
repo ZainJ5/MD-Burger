@@ -30,7 +30,7 @@ body {
 
 .checkout-button:hover {
   transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(58, 86, 166, 0.2);
+  box-shadow: 0 4px 12px rgba(51, 68, 155, 0.2);
 }
 
 .recommendation-card {
