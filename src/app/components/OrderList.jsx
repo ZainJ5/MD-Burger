@@ -1068,8 +1068,14 @@ const printDeliveryPaymentReceipt = useCallback(async (order) => {
                   <td className="p-2 border">
                     <select
                       value={currentStatus}
+                      disabled={currentStatus === 'Complete'}
                       onChange={async (e) => {
                         const newStatus = e.target.value;
+                        if (currentStatus === 'Complete') {
+                          toast.error("Completed orders cannot be modified");
+                          e.target.value = currentStatus;
+                          return;
+                        }
                         if (statusLevels[newStatus] < currentLevel && newStatus !== 'Cancel') {
                           toast.error("Cannot revert to previous status");
                           e.target.value = currentStatus;
@@ -1091,13 +1097,13 @@ const printDeliveryPaymentReceipt = useCallback(async (order) => {
                           }
                         } catch (err) {}
                       }}
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(currentStatus)} w-full text-center`}
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(currentStatus)} w-full text-center ${currentStatus === 'Complete' ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
                       {Object.keys(statusLevels).map(status => (
                         <option 
                           key={status} 
                           value={status} 
-                          disabled={(statusLevels[status] < currentLevel && status !== 'Cancel' && status !== currentStatus) || (currentStatus === 'Complete' && status !== 'Cancel' && status !== 'Complete') || (currentStatus === 'Cancel' && status !== 'Cancel')}
+                          disabled={(statusLevels[status] < currentLevel && status !== 'Cancel' && status !== currentStatus) || (currentStatus === 'Complete' && status !== 'Complete') || (currentStatus === 'Cancel' && status !== 'Cancel')}
                         >
                           {status}
                         </option>
