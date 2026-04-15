@@ -109,13 +109,13 @@ export default function MenuTabs({ categories = [], visibleCategory }) {
   return (
     <div 
       ref={menuTabsRef}
-      className={`bg-red-700 w-full sticky top-0 z-[60] ${isSticky ? 'shadow-md' : ''}`}
+      className={`bg-brand-700 w-full sticky top-0 z-[60] ${isSticky ? 'shadow-md' : ''}`}
     >
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="absolute right-4 top-[-29px] hidden md:flex items-center gap-[2px] z-10">
           <button 
             onClick={() => scrollCategories('left')} 
-            className="bg-red-700 rounded-full p-2 shadow-md focus:outline-none"
+            className="bg-brand-700 rounded-full p-2 shadow-md focus:outline-none"
             aria-label="Scroll left"
           >
             <svg
@@ -130,7 +130,7 @@ export default function MenuTabs({ categories = [], visibleCategory }) {
           </button>
           <button 
             onClick={() => scrollCategories('right')} 
-            className="bg-red-700 rounded-full p-2 shadow-md focus:outline-none"
+            className="bg-brand-700 rounded-full p-2 shadow-md focus:outline-none"
             aria-label="Scroll right"
           >
             <svg

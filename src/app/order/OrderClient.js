@@ -124,13 +124,13 @@ function OrderDetailContent() {
       case "Pending":
         return { bg: "bg-yellow-100", text: "text-yellow-800", ring: "ring-yellow-600/20" };
       case "In-Process":
-        return { bg: "bg-blue-100", text: "text-blue-800", ring: "ring-blue-600/20" };
+        return { bg: "bg-brand-100", text: "text-brand-800", ring: "ring-brand-600/20" };
       case "Dispatched":
         return { bg: "bg-purple-100", text: "text-purple-800", ring: "ring-purple-600/20" };
       case "Complete":
         return { bg: "bg-green-100", text: "text-green-800", ring: "ring-green-600/20" };
       case "Cancel":
-        return { bg: "bg-red-100", text: "text-red-800", ring: "ring-red-600/20" };
+        return { bg: "bg-brand-100", text: "text-brand-800", ring: "ring-brand-600/20" };
       default:
         return { bg: "bg-gray-100", text: "text-gray-800", ring: "ring-gray-600/20" };
     }
@@ -176,7 +176,7 @@ function OrderDetailContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-brand-600 border-t-transparent"></div>
           <p className="mt-4 text-gray-700">Loading order details...</p>
         </div>
       </div>
@@ -187,7 +187,7 @@ function OrderDetailContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8 bg-white rounded-lg shadow-md">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-100 text-brand-600 mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -196,7 +196,7 @@ function OrderDetailContent() {
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => router.push('/orders')}
-            className="bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition duration-200 shadow-lg"
+            className="bg-brand-600 text-white py-3 px-6 rounded-lg hover:bg-brand-700 transition duration-200 shadow-lg"
           >
             Return to Orders
           </button>
@@ -218,7 +218,7 @@ function OrderDetailContent() {
           <p className="text-gray-600 mb-6">We couldn't find any order details to display.</p>
           <button
             onClick={() => router.push('/orders')}
-            className="bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition duration-200 shadow-lg"
+            className="bg-brand-600 text-white py-3 px-6 rounded-lg hover:bg-brand-700 transition duration-200 shadow-lg"
           >
             View Your Orders
           </button>
@@ -267,7 +267,7 @@ function OrderDetailContent() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/')}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-red-700 transition duration-150"
+                className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center hover:bg-brand-700 transition duration-150"
               >
                 Order More Food
               </button>
@@ -313,7 +313,7 @@ function OrderDetailContent() {
               <p className="text-gray-600">{getStatusDescription(orderDetails.status)}</p>
               
               {orderDetails.status === "Cancel" && orderDetails.cancelReason && (
-                <div className="mt-2 p-3 bg-red-50 border border-red-100 rounded-md text-red-700 text-sm">
+                <div className="mt-2 p-3 bg-brand-50 border border-brand-100 rounded-md text-brand-700 text-sm">
                   <p className="font-semibold">Cancellation Reason:</p>
                   <p>{orderDetails.cancelReason}</p>
                 </div>
@@ -362,7 +362,7 @@ function OrderDetailContent() {
             {/* Customer Information */}
             <div className="p-6 border-b md:border-b-0 md:border-r border-gray-200">
               <div className="flex items-center mb-4">
-                <User className="h-5 w-5 text-red-600 mr-2" />
+                <User className="h-5 w-5 text-brand-600 mr-2" />
                 <h3 className="font-medium text-gray-900">Customer Information</h3>
               </div>
               <div className="space-y-3 text-sm text-gray-600">
@@ -393,9 +393,9 @@ function OrderDetailContent() {
             <div className="p-6 border-b md:border-b-0 md:border-r border-gray-200">
               <div className="flex items-center mb-4">
                 {orderDetails.orderType === "delivery" ? (
-                  <Truck className="h-5 w-5 text-red-600 mr-2" />
+                  <Truck className="h-5 w-5 text-brand-600 mr-2" />
                 ) : (
-                  <Store className="h-5 w-5 text-red-600 mr-2" />
+                  <Store className="h-5 w-5 text-brand-600 mr-2" />
                 )}
                 <h3 className="font-medium text-gray-900">
                   {orderDetails.orderType === "delivery" ? "Delivery Information" : "Pickup Information"}
@@ -444,7 +444,7 @@ function OrderDetailContent() {
             {/* Payment Information */}
             <div className="p-6">
               <div className="flex items-center mb-4">
-                <CreditCard className="h-5 w-5 text-red-600 mr-2" />
+                <CreditCard className="h-5 w-5 text-brand-600 mr-2" />
                 <h3 className="font-medium text-gray-900">Payment Information</h3>
               </div>
               <div className="space-y-3 text-sm text-gray-600">
@@ -627,7 +627,7 @@ function OrderDetailContent() {
               </button>
               <button
                 onClick={() => router.push('/')}
-                className="flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                className="flex items-center px-4 py-2 bg-brand-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-brand-700 transition-colors"
               >
                 Order More Food
               </button>
@@ -660,7 +660,7 @@ function OrderDetailContent() {
               <ul className="mt-4 space-y-2">
                 <li className="flex items-center text-sm text-gray-600">
                   <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                  <a href="tel:+923122754064" className="hover:text-red-600">+92 312 2754064</a>
+                  <a href="tel:+923122754064" className="hover:text-brand-600">+92 312 2754064</a>
                 </li>
                 <li className="flex items-center text-sm text-gray-600">
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
@@ -673,10 +673,10 @@ function OrderDetailContent() {
               <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">Quick Links</h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <Link href="/" className="text-sm text-gray-600 hover:text-red-600">Home</Link>
+                  <Link href="/" className="text-sm text-gray-600 hover:text-brand-600">Home</Link>
                 </li>
                 <li>
-                  <Link href="/orders" className="text-sm text-gray-600 hover:text-red-600">My Orders</Link>
+                  <Link href="/orders" className="text-sm text-gray-600 hover:text-brand-600">My Orders</Link>
                 </li>
               </ul>
             </div>
@@ -715,7 +715,7 @@ function OrderLoading() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent"></div>
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-brand-600 border-t-transparent"></div>
         <p className="mt-4 text-gray-700">Loading order details...</p>
       </div>
     </div>

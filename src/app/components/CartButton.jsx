@@ -16,20 +16,20 @@ export default function CartButton() {
         <button
           onClick={() => setIsCartOpen(true)}
           className="
-            bg-red-600 text-white 
+            bg-brand-600 text-white 
             px-6 py-4
             flex items-center justify-center 
             shadow-[0_-4px_12px_rgba(0,0,0,0.15)]
             text-base font-semibold
             rounded-t-2xl
             transition-all duration-300
-            hover:bg-red-700
+            hover:bg-brand-700
             border-2 border-white border-b-0
           "
         >
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3">
-              <div className="bg-white text-red-600 rounded-full w-9 h-9 flex items-center justify-center font-bold text-base">
+              <div className="bg-white text-brand-600 rounded-full w-9 h-9 flex items-center justify-center font-bold text-base">
                 {items.length}
               </div>
               <span className="text-lg font-semibold">View Cart</span>
@@ -48,7 +48,7 @@ export default function CartButton() {
           onClick={() => setIsCartOpen(true)}
           className="
             w-full
-            bg-red-600 text-white 
+            bg-brand-600 text-white 
             px-4 py-3 
             flex items-center justify-center 
             shadow-lg 

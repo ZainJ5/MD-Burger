@@ -126,11 +126,11 @@ function Header() {
           )}
 
           <a 
-            href={`tel:${branch?.phone || '021 - 111 822 111'}`}
+            href={`tel:${branch?.phone || '0345 5820200'}`}
             className="hidden sm:flex items-center bg-black text-white rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm"
           >
             <Phone className="h-4 w-4 sm:h-5 w-5 mr-1 text-white" />
-            <span className="font-medium text-xs sm:text-sm">{branch?.phone || '021 - 111 822 111'}</span>
+            <span className="font-medium text-xs sm:text-sm">{branch?.phone || '0345 5820200'}</span>
           </a>
         </div>
 
@@ -157,11 +157,11 @@ function Header() {
           )}
           
           <a 
-            href={`tel:${branch?.phone || '021 - 111 822 111'}`}
+            href={`tel:${branch?.phone || '0345 5820200'}`}
             className="flex sm:hidden items-center bg-black text-white rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm"
           >
             <Phone className="h-4 w-4 sm:h-5 w-5 mr-1 text-white" />
-            <span className="font-medium text-xs sm:text-sm">{branch?.phone || '021 - 111 822 111'}</span>
+            <span className="font-medium text-xs sm:text-sm">{branch?.phone || '0345 5820200'}</span>
           </a>
           
           {/* Desktop Header Cart Icon */}
@@ -316,7 +316,7 @@ export default function Hero() {
               className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-2 focus:outline-none z-10"
               aria-label="Previous image"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
@@ -326,7 +326,7 @@ export default function Hero() {
               className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-2 focus:outline-none z-10"
               aria-label="Next image"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>

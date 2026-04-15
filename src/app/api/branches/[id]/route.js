@@ -8,7 +8,7 @@ import FoodItem from "@/app/models/FoodItem";
 export async function PATCH(request, { params }) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
 
     // If setting this branch as default, unset all other branches
@@ -36,7 +36,7 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
 
     const branch = await Branch.findById(id);
     if (!branch) {

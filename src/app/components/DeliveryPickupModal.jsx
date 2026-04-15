@@ -126,7 +126,7 @@ export default function DeliveryPickupModal() {
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
         <div className="bg-white w-full max-w-sm rounded-xl p-8 flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-600"></div>
         </div>
       </div>
     );
@@ -136,7 +136,7 @@ export default function DeliveryPickupModal() {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-fadeIn">
         <div className="relative">
-          <div className="bg-red-600 h-20"></div>
+          <div className="bg-brand-600 h-20"></div>
           <div className="absolute left-1/2 -translate-x-1/2 top-6 flex justify-center">
             <div className="rounded-full bg-white p-1.5 border-4 border-white shadow-lg">
               <img
@@ -160,7 +160,7 @@ export default function DeliveryPickupModal() {
                     !branch
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : orderType === "delivery"
-                      ? "bg-red-600 text-white shadow-md"
+                      ? "bg-brand-600 text-white shadow-md"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -176,7 +176,7 @@ export default function DeliveryPickupModal() {
                     !branch
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : orderType === "pickup"
-                      ? "bg-red-600 text-white shadow-md"
+                      ? "bg-brand-600 text-white shadow-md"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -186,7 +186,7 @@ export default function DeliveryPickupModal() {
               )}
             </div>
             {!branch && (
-              <p className="text-xs text-red-600 mt-2 text-center">
+              <p className="text-xs text-brand-600 mt-2 text-center">
                 Please select a branch first
               </p>
             )}
@@ -201,7 +201,7 @@ export default function DeliveryPickupModal() {
               <select
                 value={branch?._id || ""}
                 onChange={handleBranchSelect}
-                className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-base text-gray-800 appearance-none cursor-pointer transition-all"
+                className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-base text-gray-800 appearance-none cursor-pointer transition-all"
               >
                 <option value="" disabled className="text-gray-500">
                   Choose your branch
@@ -225,7 +225,7 @@ export default function DeliveryPickupModal() {
                 <select
                   value={deliveryArea?._id || ""}
                   onChange={handleDeliveryAreaSelect}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 text-base text-gray-800 appearance-none cursor-pointer transition-all"
+                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-base text-gray-800 appearance-none cursor-pointer transition-all"
                 >
                   <option value="" disabled className="text-gray-500">
                     {branch ? 'Select your area' : 'Select a branch first'}
@@ -247,7 +247,7 @@ export default function DeliveryPickupModal() {
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
               </div>
               {branch && deliveryAreas.length === 0 && (
-                <p className="text-xs text-red-600 mt-2">
+                <p className="text-xs text-brand-600 mt-2">
                   No delivery areas available for {branch.name}. Please try pickup.
                 </p>
               )}

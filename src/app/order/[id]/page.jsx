@@ -140,7 +140,7 @@ export default function OrderDetailPage() {
         return "bg-amber-50 text-amber-700 border-amber-200";
       case "in-process":
       case "in process":
-        return "bg-blue-50 text-blue-700 border-blue-200";
+        return "bg-brand-50 text-brand-700 border-brand-200";
       case "dispatched":
         return "bg-purple-50 text-purple-700 border-purple-200";
       case "complete":
@@ -226,7 +226,7 @@ export default function OrderDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-brand-600 border-t-transparent"></div>
           <p className="mt-4 text-gray-600 font-medium">Loading order details...</p>
         </div>
       </div>
@@ -237,14 +237,14 @@ export default function OrderDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md mx-auto p-8 bg-white rounded-xl shadow-md">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-100 text-brand-600 mb-4">
             <AlertCircle className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold mb-2 text-gray-900">{error}</h1>
           <p className="text-gray-600 mb-6">We couldn't find the order details you're looking for.</p>
           <Link
             href="/order"
-            className="bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition duration-200 shadow-sm inline-block font-medium"
+            className="bg-brand-600 text-white py-3 px-6 rounded-lg hover:bg-brand-700 transition duration-200 shadow-sm inline-block font-medium"
           >
             Return to Orders
           </Link>
@@ -264,7 +264,7 @@ export default function OrderDetailPage() {
           <p className="text-gray-600 mb-6">We couldn't find the order details you're looking for.</p>
           <Link
             href="/order"
-            className="bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition duration-200 shadow-sm inline-block font-medium"
+            className="bg-brand-600 text-white py-3 px-6 rounded-lg hover:bg-brand-700 transition duration-200 shadow-sm inline-block font-medium"
           >
             Return to Orders
           </Link>
@@ -374,7 +374,7 @@ export default function OrderDetailPage() {
                     <Clock className="h-4 w-4 mx-auto mb-1" />
                     Pending
                   </div>
-                  <div className={`p-2 rounded ${currentStatus.toLowerCase() === "in-process" || currentStatus.toLowerCase() === "dispatched" || currentStatus.toLowerCase() === "completed" || currentStatus.toLowerCase() === "complete" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-400"}`}>
+                  <div className={`p-2 rounded ${currentStatus.toLowerCase() === "in-process" || currentStatus.toLowerCase() === "dispatched" || currentStatus.toLowerCase() === "completed" || currentStatus.toLowerCase() === "complete" ? "bg-brand-100 text-brand-800" : "bg-gray-100 text-gray-400"}`}>
                     <RefreshCw className="h-4 w-4 mx-auto mb-1" />
                     In Process
                   </div>
@@ -434,7 +434,7 @@ export default function OrderDetailPage() {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">Order Items</h2>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${displayOrder.orderType === "delivery" ? "bg-blue-50 text-blue-700" : "bg-purple-50 text-purple-700"}`}>
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${displayOrder.orderType === "delivery" ? "bg-brand-50 text-brand-700" : "bg-purple-50 text-purple-700"}`}>
                   {displayOrder.orderType === "delivery" ? (
                     <>
                       <Truck className="h-3 w-3 mr-1" />
@@ -579,7 +579,7 @@ export default function OrderDetailPage() {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-200">
                 <div className="flex items-center">
-                  <Calendar className="h-5 w-5 text-red-600 mr-2" />
+                  <Calendar className="h-5 w-5 text-brand-600 mr-2" />
                   <h3 className="font-medium text-gray-900">Order Timeline</h3>
                 </div>
               </div>
@@ -616,7 +616,7 @@ export default function OrderDetailPage() {
                           )}
                           <div className="relative flex space-x-3">
                             <div>
-                              <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                              <span className="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center ring-8 ring-white">
                                 <RefreshCw className="h-5 w-5 text-white" />
                               </span>
                             </div>
@@ -694,7 +694,7 @@ export default function OrderDetailPage() {
                         <div className="relative">
                           <div className="relative flex space-x-3">
                             <div>
-                              <span className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center ring-8 ring-white">
+                              <span className="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center ring-8 ring-white">
                                 <X className="h-5 w-5 text-white" />
                               </span>
                             </div>
@@ -727,7 +727,7 @@ export default function OrderDetailPage() {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-200">
                 <div className="flex items-center">
-                  <User className="h-5 w-5 text-red-600 mr-2" />
+                  <User className="h-5 w-5 text-brand-600 mr-2" />
                   <h3 className="font-medium text-gray-900">Customer Information</h3>
                 </div>
               </div>
@@ -738,18 +738,18 @@ export default function OrderDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Phone Number</p>
-                  <a href={`tel:${displayOrder.mobileNumber}`} className="font-medium text-gray-900 hover:text-red-600">{displayOrder.mobileNumber}</a>
+                  <a href={`tel:${displayOrder.mobileNumber}`} className="font-medium text-gray-900 hover:text-brand-600">{displayOrder.mobileNumber}</a>
                 </div>
                 {displayOrder.alternateMobile && (
                   <div>
                     <p className="text-xs text-gray-500">Alternative Phone</p>
-                    <a href={`tel:${displayOrder.alternateMobile}`} className="font-medium text-gray-900 hover:text-red-600">{displayOrder.alternateMobile}</a>
+                    <a href={`tel:${displayOrder.alternateMobile}`} className="font-medium text-gray-900 hover:text-brand-600">{displayOrder.alternateMobile}</a>
                   </div>
                 )}
                 {displayOrder.email && (
                   <div>
                     <p className="text-xs text-gray-500">Email</p>
-                    <a href={`mailto:${displayOrder.email}`} className="font-medium text-gray-900 hover:text-red-600">{displayOrder.email}</a>
+                    <a href={`mailto:${displayOrder.email}`} className="font-medium text-gray-900 hover:text-brand-600">{displayOrder.email}</a>
                   </div>
                 )}
               </div>
@@ -760,9 +760,9 @@ export default function OrderDetailPage() {
               <div className="px-6 py-5 border-b border-gray-200">
                 <div className="flex items-center">
                   {displayOrder.orderType === "delivery" ? (
-                    <Truck className="h-5 w-5 text-red-600 mr-2" />
+                    <Truck className="h-5 w-5 text-brand-600 mr-2" />
                   ) : (
-                    <Store className="h-5 w-5 text-red-600 mr-2" />
+                    <Store className="h-5 w-5 text-brand-600 mr-2" />
                   )}
                   <h3 className="font-medium text-gray-900">
                     {displayOrder.orderType === "delivery" ? "Delivery Information" : "Pickup Information"}
@@ -789,7 +789,7 @@ export default function OrderDetailPage() {
                         <div className="flex items-center">
                           <p className="font-medium text-gray-900">{extractedArea}</p>
                           {areaFee !== null && (
-                            <span className="ml-2 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                            <span className="ml-2 text-xs bg-brand-50 text-brand-700 px-2 py-1 rounded-full">
                               Rs. {areaFee} fee
                             </span>
                           )}
@@ -834,7 +834,7 @@ export default function OrderDetailPage() {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-200">
                 <div className="flex items-center">
-                  <CreditCard className="h-5 w-5 text-red-600 mr-2" />
+                  <CreditCard className="h-5 w-5 text-brand-600 mr-2" />
                   <h3 className="font-medium text-gray-900">Payment Information</h3>
                 </div>
               </div>
@@ -851,8 +851,8 @@ export default function OrderDetailPage() {
                       </>
                     ) : (
                       <>
-                        <div className="mr-2 p-1 bg-blue-100 rounded-full">
-                          <CreditCard className="h-4 w-4 text-blue-600" />
+                        <div className="mr-2 p-1 bg-brand-100 rounded-full">
+                          <CreditCard className="h-4 w-4 text-brand-600" />
                         </div>
                         <p className="font-medium text-gray-900">Online Payment</p>
                       </>
@@ -912,7 +912,7 @@ export default function OrderDetailPage() {
 
             <Link
               href="/"
-              className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+              className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700"
             >
               <Package className="h-4 w-4 mr-1.5" />
               Order More

@@ -700,9 +700,9 @@ const handlePlaceOrder = async () => {
                   </h1>
                   <p className="text-sm sm:text-base text-gray-600">
                     {orderType === "delivery" ? (
-                      <>This is a Delivery Order <span className="text-red-600">🚚</span></>
+                      <>This is a Delivery Order <span className="text-brand-600">🚚</span></>
                     ) : (
-                      <>This is a Pickup Order <span className="text-red-600">🏪</span></>
+                      <>This is a Pickup Order <span className="text-brand-600">🏪</span></>
                     )}
                     <br />
                     Just a last step, please enter your details:
@@ -725,7 +725,7 @@ const handlePlaceOrder = async () => {
                   </div>
                   <div className="sm:col-span-3">
                     <label className="block text-sm text-gray-700 mb-1">
-                      Full Name <span className="text-red-500">*Required</span>
+                      Full Name <span className="text-brand-500">*Required</span>
                     </label>
                     <input
                       type="text"
@@ -740,7 +740,7 @@ const handlePlaceOrder = async () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-700 mb-1">
-                      Mobile Number <span className="text-red-500">*Required</span>
+                      Mobile Number <span className="text-brand-500">*Required</span>
                     </label>
                     <input
                       type="tel"
@@ -755,7 +755,7 @@ const handlePlaceOrder = async () => {
                   {orderType === "pickup" ? (
                     <div>
                       <label className="block text-sm text-gray-700 mb-1">
-                        Pick Up Time <span className="text-red-500">*Required</span>
+                        Pick Up Time <span className="text-brand-500">*Required</span>
                       </label>
                       <select
                         value={pickupTime}
@@ -772,7 +772,7 @@ const handlePlaceOrder = async () => {
                   ) : (
                     <div>
                       <label className="block text-sm text-gray-700 mb-1">
-                      Whatsapp Number <span className="text-red-500">*Required</span>
+                      Whatsapp Number <span className="text-brand-500">*Required</span>
                     </label>
                       <input
                         type="tel"
@@ -792,7 +792,7 @@ const handlePlaceOrder = async () => {
                   <>
                     <div>
                       <label className="block text-sm text-gray-700 mb-1">
-                        Delivery Address <span className="text-red-500">*Required</span>
+                        Delivery Address <span className="text-brand-500">*Required</span>
                       </label>
                       <input
                         type="text"
@@ -804,7 +804,7 @@ const handlePlaceOrder = async () => {
                     </div>
                     <div>
                       <label className="block text-sm text-gray-700 mb-1">
-                        Select Area <span className="text-red-500">*Required</span>
+                        Select Area <span className="text-brand-500">*Required</span>
                       </label>
                       {branch && (
                         <p className="text-xs text-gray-600 mb-2">
@@ -829,7 +829,7 @@ const handlePlaceOrder = async () => {
                         ))}
                       </select>
                       {deliveryAreas.length === 0 && branch && (
-                        <p className="text-xs text-red-600 mt-1">
+                        <p className="text-xs text-brand-600 mt-1">
                           No delivery areas available for {branch.name} branch. Please contact support.
                         </p>
                       )}
@@ -898,7 +898,7 @@ const handlePlaceOrder = async () => {
                     id="isGift"
                     checked={isGift}
                     onChange={(e) => setIsGift(e.target.checked)}
-                    className="h-4 w-4 text-red-600 rounded"
+                    className="h-4 w-4 text-brand-600 rounded"
                   />
                   <label htmlFor="isGift" className="text-sm text-gray-700">
                     This is a gift
@@ -950,11 +950,11 @@ const handlePlaceOrder = async () => {
                       // }}
                       className={`p-4 border rounded-md flex flex-col items-center justify-center space-y-2 ${
                         paymentMethod === "online"
-                          ? "border-blue-500 bg-blue-50"
+                          ? "border-brand-500 bg-brand-50"
                           : "border-gray-200 opacity-50"
                       }`}
                     >
-                      <FaCreditCard className="text-blue-500" size={24} />
+                      <FaCreditCard className="text-brand-500" size={24} />
                       <span>Online Payment</span>
                       <span className="text-xs text-gray-500">(Coming Soon)</span>
                     </button>
@@ -986,11 +986,11 @@ const handlePlaceOrder = async () => {
                         // }}
                         className={`p-4 border rounded-md flex flex-col items-center justify-center space-y-2 ${
                           onlineOption === "jazzcash"
-                            ? "border-blue-500 bg-blue-50"
+                            ? "border-brand-500 bg-brand-50"
                             : "border-gray-200 opacity-50"
                         }`}
                       >
-                        <FaCreditCard className="text-blue-500" size={24} />
+                        <FaCreditCard className="text-brand-500" size={24} />
                         <span>JazzCash</span>
                         <span className="text-xs text-gray-500">(Coming Soon)</span>
                       </button>
@@ -1002,11 +1002,11 @@ const handlePlaceOrder = async () => {
                         // }}
                         className={`p-4 border rounded-md flex flex-col items-center justify-center space-y-2 ${
                           onlineOption === "bank_transfer"
-                            ? "border-red-500 bg-red-50"
+                            ? "border-brand-500 bg-brand-50"
                             : "border-gray-200 opacity-50"
                         }`}
                       >
-                        <FaCreditCard className="text-red-500" size={24} />
+                        <FaCreditCard className="text-brand-500" size={24} />
                         <span>Bank Transfer</span>
                         <span className="text-xs text-gray-500">(Coming Soon)</span>
                       </button>
@@ -1030,7 +1030,7 @@ const handlePlaceOrder = async () => {
                         </p>
                         <div className="mt-4">
                           <label className="block text-sm text-gray-700 mb-1">
-                            Upload Payment Receipt <span className="text-red-500">*</span>
+                            Upload Payment Receipt <span className="text-brand-500">*</span>
                           </label>
                           <input
                             type="file"
@@ -1060,7 +1060,7 @@ const handlePlaceOrder = async () => {
                         </p>
                         <div className="mt-4">
                           <label className="block text-sm text-gray-700 mb-1">
-                            Upload Payment Receipt <span className="text-red-500">*</span>
+                            Upload Payment Receipt <span className="text-brand-500">*</span>
                           </label>
                           <input
                             type="file"
@@ -1096,7 +1096,7 @@ const handlePlaceOrder = async () => {
                         </p>
                         <div className="mt-4">
                           <label className="block text-sm text-gray-700 mb-1">
-                            Upload Payment Receipt <span className="text-red-500">*</span>
+                            Upload Payment Receipt <span className="text-brand-500">*</span>
                           </label>
                           <input
                             type="file"
@@ -1189,14 +1189,14 @@ const handlePlaceOrder = async () => {
                   })}
                 </div>
               ) : (
-                <div className="mb-4 py-3 text-center text-red-600 bg-red-50 rounded-md">
+                <div className="mb-4 py-3 text-center text-brand-600 bg-brand-50 rounded-md">
                   Your cart is empty. Please add items to continue.
                 </div>
               )}
               
               <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
                 <div className="flex items-center mb-3">
-                  <FaTag className="text-red-500 mr-2" />
+                  <FaTag className="text-brand-500 mr-2" />
                   <span className="font-medium">Promo Code</span>
                 </div>
                 {appliedPromoCode ? (
@@ -1211,7 +1211,7 @@ const handlePlaceOrder = async () => {
                       <button
                         type="button"
                         onClick={handleRemovePromoCode}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium"
+                        className="text-sm text-brand-600 hover:text-brand-800 font-medium"
                       >
                         Remove
                       </button>
@@ -1231,13 +1231,13 @@ const handlePlaceOrder = async () => {
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                         placeholder="Enter promo code"
-                        className="flex-1 px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                       />
                       <button
                         type="button"
                         onClick={handleApplyPromoCode}
                         disabled={isApplyingPromo || !promoCode.trim()}
-                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center"
+                        className="px-4 py-2 bg-brand-600 text-white rounded-md hover:bg-brand-700 disabled:opacity-50 flex items-center"
                       >
                         {isApplyingPromo ? (
                           <span className="inline-block animate-pulse">Applying...</span>
@@ -1247,7 +1247,7 @@ const handlePlaceOrder = async () => {
                       </button>
                     </div>
                     {promoError && (
-                      <p className="text-xs text-red-500 mt-1">{promoError}</p>
+                      <p className="text-xs text-brand-500 mt-1">{promoError}</p>
                     )}
                     {discountActive && (
                       <div className="mt-2 text-xs text-gray-600 bg-gray-100 p-2 rounded-md">
@@ -1290,7 +1290,7 @@ const handlePlaceOrder = async () => {
                 )}
 
                 {totalDiscount > 0 && (
-                  <div className="flex justify-between text-red-600 font-bold">
+                  <div className="flex justify-between text-brand-600 font-bold">
                     <span>Total Discount</span>
                     <span>- Rs. {formatPrice(totalDiscount)}</span>
                   </div>
@@ -1300,7 +1300,7 @@ const handlePlaceOrder = async () => {
               <div className="mt-4">
                 <div className="flex justify-between text-base sm:text-lg font-semibold">
                   <span>Grand Total</span>
-                  <span className="text-red-600">Rs. {formatPrice(grandTotal)}</span>
+                  <span className="text-brand-600">Rs. {formatPrice(grandTotal)}</span>
                 </div>
                 {totalDiscount > 0 && (
                   <div className="mt-2 text-xs text-green-600 bg-green-50 p-2 rounded-md text-center">
@@ -1311,14 +1311,14 @@ const handlePlaceOrder = async () => {
                   </div>
                 )}
                 {subtotal < MIN_ORDER_VALUE && (
-                  <div className="mt-2 text-xs text-red-600">
+                  <div className="mt-2 text-xs text-brand-600">
                     Minimum order value is Rs. {MIN_ORDER_VALUE}. Please add more items.
                   </div>
                 )}
               </div>
               
               {!isSiteActive && (
-                <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-md text-center">
+                <div className="mt-6 p-4 bg-brand-50 text-brand-700 rounded-md text-center">
                   {/* <p className="font-medium">Service Unavailable</p> */}
                   <p className="text-sm">Order time is 05:00 PM to 3:00 AM. Please make orders during opening hours.</p>
                 </div>
@@ -1329,7 +1329,7 @@ const handlePlaceOrder = async () => {
                   type="button"
                   onClick={handlePlaceOrder}
                   disabled={isSubmitting || items.length === 0 || subtotal < MIN_ORDER_VALUE || !isSiteActive}
-                  className="w-full mt-6 bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full mt-6 bg-brand-600 text-white py-3 rounded-md hover:bg-brand-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center justify-center">
@@ -1345,7 +1345,7 @@ const handlePlaceOrder = async () => {
                 </button>
                 <a
                   href="/"
-                  className="block mt-4 text-center text-blue-500 hover:underline text-sm sm:text-base"
+                  className="block mt-4 text-center text-brand-500 hover:underline text-sm sm:text-base"
                 >
                   ← Continue to add more items
                 </a>

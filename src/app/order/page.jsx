@@ -110,13 +110,13 @@ export default function OrdersPage() {
       case "pending":
         return "bg-yellow-100 text-yellow-800 ring-yellow-600/20";
       case "in-process":
-        return "bg-blue-100 text-blue-800 ring-blue-600/20";
+        return "bg-brand-100 text-brand-800 ring-brand-600/20";
       case "dispatched":
         return "bg-purple-100 text-purple-800 ring-purple-600/20";
       case "complete":
         return "bg-green-100 text-green-800 ring-green-600/20";
       case "cancel":
-        return "bg-red-100 text-red-800 ring-red-600/20";
+        return "bg-brand-100 text-brand-800 ring-brand-600/20";
       default:
         return "bg-gray-100 text-gray-800 ring-gray-600/20";
     }
@@ -126,7 +126,7 @@ export default function OrdersPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-brand-600 border-t-transparent"></div>
           <p className="mt-4 text-gray-600">Loading your orders...</p>
         </div>
       </div>
@@ -145,7 +145,7 @@ export default function OrdersPage() {
             <div>
               <Link 
                 href="/"
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
               >
                 <Package className="h-4 w-4 mr-2" />
                 Order More
@@ -165,7 +165,7 @@ export default function OrdersPage() {
             <p className="text-gray-500 mb-6">You haven't placed any orders yet.</p>
             <Link
               href="/"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
             >
               Start Shopping
             </Link>
@@ -286,7 +286,7 @@ export default function OrdersPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button
                               onClick={() => router.push(`/order/${order._id}`)}
-                              className="text-red-600 hover:text-red-800 flex items-center justify-end"
+                              className="text-brand-600 hover:text-brand-800 flex items-center justify-end"
                             >
                               View Order
                               <ChevronRight className="ml-1 h-4 w-4" />
@@ -307,7 +307,7 @@ export default function OrdersPage() {
                 <p className="text-gray-500 mb-6">No orders match the selected filter. Try a different filter or place a new order.</p>
                 <Link
                   href="/"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
                 >
                   Return to Home
                 </Link>

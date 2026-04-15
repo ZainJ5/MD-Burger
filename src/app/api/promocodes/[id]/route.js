@@ -5,7 +5,7 @@ import PromoCode from "@/app/models/PromoCode";
 export async function DELETE(request, { params }) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
     const deletedPromo = await PromoCode.findByIdAndDelete(id);
     if (!deletedPromo) {
       return NextResponse.json(

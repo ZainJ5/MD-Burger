@@ -43,7 +43,7 @@ export async function DELETE(request, { params }) {
 export async function PATCH(request, { params }) {
   try {
     await connectDB();
-    const { id } = params;
+    const { id } = await params;
 
     const formData = await request.formData();
     const name = formData.get("name");

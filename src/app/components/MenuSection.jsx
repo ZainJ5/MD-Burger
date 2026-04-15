@@ -9,7 +9,6 @@ export default function MenuSection({ category, subcategories, items, onSectionV
   const sectionRef = useRef(null);
   const { setActiveCategory, setActiveCategoryName } = useMenuStore();
   const imageCache = useRef(new Map());
-  const [isMounted, setIsMounted] = useState(false);
   
   const getId = (idField) => {
     if (typeof idField === 'object' && idField !== null) {
@@ -18,12 +17,6 @@ export default function MenuSection({ category, subcategories, items, onSectionV
     }
     return idField;
   };
-
-  // Track mount state
-  useEffect(() => {
-    setIsMounted(true);
-    return () => setIsMounted(false);
-  }, []);
 
   const getCacheBustedUrl = (url) => {
     if (!url) return "";
@@ -145,11 +138,22 @@ export default function MenuSection({ category, subcategories, items, onSectionV
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-16">
         {!hasActiveSubcategories && (
-          <div className="bg-gradient-to-r from-red-700 to-red-800 text-white rounded-lg overflow-hidden sm:h-32 h-24 mb-8 flex items-center justify-center shadow-lg border-2 border-red-400 relative">
-            <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10"></div>
-            <div className="z-10 text-center px-6">
-              <h2 className="text-3xl sm:text-6xl font-bold mb-2">{category.name}</h2>
-            </div>
+          <div className="relative w-full h-auto bg-gray-200 rounded-md overflow-hidden mb-8">
+            {category.image ? (
+              <img 
+                src={category.image} 
+                alt={category.name}
+                className="w-full h-auto object-contain rounded-md"
+                loading="eager"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-r from-brand-700 to-brand-800 text-white flex items-center justify-center border-2 border-brand-400">
+                <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10"></div>
+                <div className="z-10 text-center px-6">
+                  <h2 className="text-3xl sm:text-6xl font-bold mb-2">{category.name}</h2>
+                </div>
+              </div>
+            )}
           </div>
         )}
         
@@ -167,11 +171,22 @@ export default function MenuSection({ category, subcategories, items, onSectionV
                 id={`subcategory-${getId(subcategory._id)}`} 
                 className="mb-12"
               >
-                <div className="bg-gradient-to-r from-red-700 to-red-800 text-white rounded-lg overflow-hidden h-24 sm:h-32 mb-8 flex items-center justify-center shadow-lg border-2 border-red-400 relative">
-                  <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10"></div>
-                  <div className="z-10 text-center px-6">
-                    <h3 className="text-4xl sm:text-5xl font-bold mb-2">{subcategory.name}</h3>
-                  </div>
+                <div className="relative w-full h-auto min-h-[180px] bg-gray-200 rounded-md overflow-hidden mb-8">
+                  {subcategory.image ? (
+                    <img 
+                      src={subcategory.image} 
+                      alt={subcategory.name}
+                      className="w-full h-auto object-contain rounded-md"
+                      loading="eager"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-700 to-brand-800 text-white flex items-center justify-center border-2 border-brand-400">
+                      <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10"></div>
+                      <div className="z-10 text-center px-6">
+                        <h3 className="text-4xl sm:text-5xl font-bold mb-2">{subcategory.name}</h3>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
@@ -537,7 +552,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
       <div 
         className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow 
                     ${!item.isAvailable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
-                    ${hasAnyDiscount ? 'border-2 border-red-500' : ''}`}
+                    ${hasAnyDiscount ? 'border-2 border-brand-500' : ''}`}
         onClick={item.isAvailable ? handleCardClick : null}
       >
         <div className="h-48 w-full relative">
@@ -556,7 +571,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
           )}
           
           {hasAnyDiscount && (
-            <div className="absolute top-0 right-0 bg-red-600 text-white px-2 py-1 text-xs font-bold">
+            <div className="absolute top-0 right-0 bg-brand-600 text-white px-2 py-1 text-xs font-bold">
               {hasMainItemDiscount ? 
                 `${mainItemDiscount}% OFF` : 
                 `UP TO ${Math.max(...variationPrices.map(v => 
@@ -592,7 +607,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                     <span className="text-xs text-gray-500 line-through">
                       Rs.{lowestPriceVariation.previousPrice}
                     </span>
-                    <span className="text-lg sm:text-xl font-bold text-red-600">
+                    <span className="text-lg sm:text-xl font-bold text-brand-600">
                       Rs.{lowestPriceVariation.price}
                     </span>
                   </>
@@ -609,7 +624,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                     <span className="text-xs text-gray-500 line-through">
                       Rs.{getPrice(item.previousPrice)}
                     </span>
-                    <span className="text-lg sm:text-xl font-bold text-red-600">
+                    <span className="text-lg sm:text-xl font-bold text-brand-600">
                       Rs.{getPrice(item.price)}
                     </span>
                   </>
@@ -630,7 +645,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                     handleAddDirectly(e);
                   }
                 }}
-                className="px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                className="px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-brand-600 text-white rounded-md hover:bg-brand-700 transition-colors"
               >
                 Add
               </button>
@@ -675,7 +690,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
               </button>
               
               {hasAnyDiscount && (
-                <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 text-xs font-bold rounded-md shadow-md">
+                <div className="absolute top-3 left-3 bg-brand-600 text-white px-2 py-1 text-xs font-bold rounded-md shadow-md">
                   {hasMainItemDiscount ? 
                     `${mainItemDiscount}% OFF` : 
                     `UP TO ${Math.max(...variationPrices.map(v => 
@@ -727,7 +742,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                             !isVariationAvailable 
                               ? 'opacity-50 cursor-not-allowed bg-gray-100' 
                               : selectedVariation === String(index)
-                              ? 'border-red-500 bg-red-50 cursor-pointer'
+                              ? 'border-brand-500 bg-brand-50 cursor-pointer'
                               : 'border-gray-200 hover:border-gray-300 cursor-pointer'
                           }`}
                           onClick={() => isVariationAvailable && setSelectedVariation(String(index))}
@@ -736,10 +751,10 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                             <div className={`w-4 h-4 rounded-full flex items-center justify-center border ${
                               !isVariationAvailable 
                                 ? 'border-gray-300' 
-                                : selectedVariation === String(index) ? 'border-red-600' : 'border-gray-400'
+                                : selectedVariation === String(index) ? 'border-brand-600' : 'border-gray-400'
                             }`}>
                               {selectedVariation === String(index) && isVariationAvailable && (
-                                <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                                <div className="w-2 h-2 bg-brand-600 rounded-full"></div>
                               )}
                             </div>
                             <div className="ml-2">
@@ -747,7 +762,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                                 {variation.name}
                               </span>
                               {!isVariationAvailable && (
-                                <span className="ml-2 text-xs text-red-600 font-semibold">(Unavailable)</span>
+                                <span className="ml-2 text-xs text-brand-600 font-semibold">(Unavailable)</span>
                               )}
                             </div>
                           </div>
@@ -755,7 +770,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                             {hasDiscount ? (
                               <div>
                                 <span className="text-xs text-gray-400 line-through block">Rs.{previousPrice}</span>
-                                <span className={`text-sm font-semibold ${!isVariationAvailable ? 'text-gray-400' : 'text-red-600'}`}>
+                                <span className={`text-sm font-semibold ${!isVariationAvailable ? 'text-gray-400' : 'text-brand-600'}`}>
                                   Rs.{price}
                                 </span>
                               </div>
@@ -786,7 +801,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                           <div className="flex items-center justify-between mb-2">
                             <h5 className="text-sm font-medium text-gray-800">{baseName}</h5>
                             {selectedExtras[baseName] && (
-                              <span className="text-xs text-red-600 font-medium">
+                              <span className="text-xs text-brand-600 font-medium">
                                 Selected: {selectedExtras[baseName]}
                               </span>
                             )}
@@ -807,7 +822,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                                   onClick={() => selectExtra(baseName, extra.size)}
                                   className={`py-3 px-5 border rounded-md cursor-pointer transition text-center ${
                                     selectedExtras[baseName] === extra.size
-                                      ? 'border-red-500 bg-red-50 text-red-700'
+                                      ? 'border-brand-500 bg-brand-50 text-brand-700'
                                       : 'border-gray-200 hover:border-gray-300'
                                   }`}
                                 >
@@ -825,14 +840,14 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                                 key={extra.index}
                                 className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
                                   selectedExtras[baseName] === ''
-                                    ? 'border-red-500 bg-red-50'
+                                    ? 'border-brand-500 bg-brand-50'
                                     : 'border-gray-200 hover:border-gray-300'
                                 }`}
                                 onClick={() => selectExtra(baseName, '')}
                               >
                                 <div className="flex items-center">
                                   <div className={`w-4 h-4 rounded-sm flex items-center justify-center border ${
-                                    selectedExtras[baseName] === '' ? 'bg-red-600' : 'border-gray-400'
+                                    selectedExtras[baseName] === '' ? 'bg-brand-600' : 'border-gray-400'
                                   }`}>
                                     {selectedExtras[baseName] === '' && (
                                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -873,7 +888,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                                 key={sideOrder.index}
                                 className={`flex-shrink-0 w-36 border rounded-lg overflow-hidden cursor-pointer transition-all
                                           ${isSelected 
-                                            ? 'border-red-500 ring-1 ring-red-500 shadow-md' 
+                                            ? 'border-brand-500 ring-1 ring-brand-500 shadow-md' 
                                             : 'border-gray-200 hover:border-gray-300'}`}
                                 onClick={() => toggleSideOrder(sideOrder.index)}
                               >
@@ -899,10 +914,10 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                                   )}
                                 </div>
                                 
-                                <div className={`p-2 ${isSelected ? 'bg-red-50' : 'bg-white'}`}>
+                                <div className={`p-2 ${isSelected ? 'bg-brand-50' : 'bg-white'}`}>
                                   <div className="flex items-center mb-1">
                                     <div className={`w-4 h-4 rounded-sm flex items-center justify-center flex-shrink-0 ${
-                                      isSelected ? 'bg-red-600' : 'border border-gray-400'
+                                      isSelected ? 'bg-brand-600' : 'border border-gray-400'
                                     }`}>
                                       {isSelected && (
                                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -913,7 +928,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                                     <span className="ml-1 text-xs font-medium text-gray-800 truncate">{sideOrder.name}</span>
                                   </div>
                                   <div className="text-right">
-                                    <span className="text-xs font-medium text-red-600">+Rs.{getPrice(sideOrder.price)}</span>
+                                    <span className="text-xs font-medium text-brand-600">+Rs.{getPrice(sideOrder.price)}</span>
                                   </div>
                                 </div>
                               </div>
@@ -939,7 +954,7 @@ function MenuItemCard({ item, getCacheBustedUrl }) {
                   className={`px-5 py-2 font-medium rounded-md transition-colors shadow-sm ${
                     hasVariations && selectedVariation !== "" && item.variations[Number(selectedVariation)]?.isAvailable === false
                       ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                      : 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-brand-600 text-white hover:bg-brand-700'
                   }`}
                 >
                   {hasVariations && selectedVariation !== "" && item.variations[Number(selectedVariation)]?.isAvailable === false

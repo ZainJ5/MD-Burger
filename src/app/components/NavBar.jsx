@@ -90,7 +90,7 @@ export default function Navbar() {
               {navbarData.restaurant.name}
             </h1>
             <div className="flex flex-col gap-1.5">
-              <div className="text-red-600 text-xs sm:text-sm md:text-base">
+              <div className="text-brand-600 text-xs sm:text-sm md:text-base">
                 <span>Open: </span>
                 <span className="font-normal text-black">
                   {navbarData.restaurant.openingHours}

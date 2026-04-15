@@ -192,7 +192,7 @@ export default function SuperDeals({ searchQuery }) {
                           handleAddDirectly(item, e);
                         }
                       }}
-                      className="px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                      className="px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-brand-600 text-white rounded-md hover:bg-brand-700 transition-colors"
                     >
                       Add 
                     </button>
@@ -269,7 +269,7 @@ export default function SuperDeals({ searchQuery }) {
               )}
               <button
                 onClick={handleModalAddToCart}
-                className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors"
+                className="w-full bg-brand-600 text-white py-2 rounded hover:bg-brand-700 transition-colors"
               >
                 Add to Cart
               </button>
