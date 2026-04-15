@@ -8,7 +8,7 @@ import Image from 'next/image';
 export default function Login() {
   const router = useRouter();
   const predefinedUsername = "admin";
-  const predefinedPassword = "admin123";
+  const predefinedPassword = "MD@admin12345";
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
