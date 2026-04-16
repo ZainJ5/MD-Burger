@@ -220,11 +220,6 @@ export default `<!DOCTYPE html>
 <body>
   <div class="receipt-container">
     <div class="header">
-      <div class="restaurant-name">MD Burger & Broast</div>
-      <div class="restaurant-info">All Prices Are Inclusive of 13% SST</div>
-    </div>
-
-    <div class="title-container">
       <div class="receipt-title">DELIVERY - PAYMENT RECEIPT</div>
     </div>
 
